@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@layer components {
+    .glass {
+        @apply bg-white/90 backdrop-blur-lg border border-white/20 shadow-sm;
+    }
+
+    .btn-primary {
+        /* Removed 'transform' as it is auto-enabled in v4, changed bg-white opacity to slash notation */
+        @apply px-6 py-2 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition duration-300 hover:-translate-y-1;
+    }
+}
+
+@theme {
+    --color-primary: #7c3aed;
+    --color-primary-light: #a78bfa;
+    --color-primary-dark: #5b21b6;
+
+    --color-accent: #f59e0b;
+    --color-accent-light: #fcd34d;
+    --color-accent-dark: #d97706;
+
+    --font-heading: 'Outfit', sans-serif;
+    --font-sans: 'Outfit', sans-serif;
+}
