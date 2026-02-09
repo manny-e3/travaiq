@@ -5,6 +5,13 @@
 @section('content')
 
 <!-- Hero Section -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<style>
+    #itinerary-map { width: 100%; border-radius: 1rem; z-index: 1; }
+    .leaflet-popup-content-wrapper { border-radius: 0.75rem; overflow: hidden; padding: 0; }
+    .leaflet-popup-content { margin: 0; width: 280px !important; }
+</style>
 <div class="relative h-[50vh] min-h-[400px]">
     @if ($tripDetails->google_place_image)
         <img src="{{ $tripDetails->google_place_image }}" alt="{{ $tripDetails->location }}" class="w-full h-full object-cover">
@@ -70,7 +77,7 @@
 
             <!-- Itinerary Timeline -->
             <div>
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                     <h2 class="text-2xl font-bold text-gray-900">Your Daily Plan</h2>
                     
                     <div class="flex flex-wrap gap-2 sm:gap-4 items-center justify-between sm:justify-end w-full sm:w-auto">
@@ -98,6 +105,10 @@
                     </div>
                 </div>
 
+                
+                <!-- Interactive Map -->
+
+
                 <div class="space-y-6">
                     @foreach ($itineraries as $itinerary)
                     <div class="group relative pl-4 sm:pl-8 border-l-2 border-dashed border-gray-200 hover:border-primary transition-colors duration-300">
@@ -116,18 +127,18 @@
                                     @endif
                                 </span>
                                 </span>
-                                <a href="https://www.google.com/maps/dir/?api=1&destination={{ urlencode($tripDetails->location) }}&waypoints={{ $itinerary->activities->pluck('name')->map(fn($n) => urlencode($n . ', ' . $tripDetails->location))->join('|') }}" 
-                                   target="_blank"
+                                <!-- View Route Button triggers Modal -->
+                                <button onclick="openMapModal({{ $itinerary->day }})" 
                                    class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0121 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
                                     View Route
-                                </a>
+                                </button>
                             </h3>
 
                             <div class="space-y-6">
                                 @foreach ($itinerary->activities as $activity)
-                                <div class="flex flex-col sm:flex-row gap-4">
-                                    <div class="w-full h-48 sm:w-24 sm:h-24 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 relative group-hover:shadow-md transition-all">
+                                <div class="flex flex-col sm:flex-row gap-6">
+                                    <div class="flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 relative group-hover:shadow-md transition-all" style="width: 18rem !important; height: 12rem !important;">
                                         @if ($activity->image_url)
                                             <img src="{{ $activity->image_url }}" alt="{{ $activity->name }}" class="w-full h-full object-cover">
                                         @else
@@ -190,6 +201,103 @@
                     @endforeach
                 </div>
             </div>
+
+            <!-- Getting There Section -->
+            @if(isset($flightRecommendation))
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Getting There</h2>
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    
+                    <!-- Header with Origin/Destination -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-6 border-b border-gray-100">
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">Recommended Flight Plan</p>
+                            <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded-lg text-sm">✈️ Flights</span>
+                                <span>to {{ $tripDetails->location }}</span>
+                            </h3>
+                        </div>
+                        @if($flightRecommendation->best_booking_time)
+                        <div class="mt-4 md:mt-0 px-4 py-2 bg-green-50 text-green-700 rounded-xl text-sm font-medium flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Best to book: {{ $flightRecommendation->best_booking_time }}
+                        </div>
+                        @endif
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Left: Airports & Airlines -->
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="font-bold text-gray-900 mb-3 flex items-center">
+                                    <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    Major Airports
+                                </h4>
+                                <ul class="space-y-3">
+                                    @foreach($flightRecommendation->airports as $airport)
+                                    <li class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg">
+                                        <div>
+                                            <span class="font-bold text-gray-800">{{ $airport->code }}</span>
+                                            <span class="text-sm text-gray-600 ml-2">{{ $airport->name }}</span>
+                                        </div>
+                                        <span class="text-xs text-gray-500">{{ $airport->distance_to_city }} from city</span>
+                                    </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h4 class="font-bold text-gray-900 mb-3 flex items-center">
+                                    <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                                    Recommended Airlines
+                                </h4>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($flightRecommendation->airlines as $airline)
+                                    <span class="px-3 py-1 bg-white border border-gray-200 rounded-full text-sm text-gray-700 shadow-sm">
+                                        {{ $airline->name }} <span class="text-gray-400 text-xs ml-1">({{ $airline->typical_price_range }})</span>
+                                    </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Tips & Booking -->
+                        <div class="space-y-6">
+                            @if($flightRecommendation->travel_tips)
+                            <div>
+                                <h4 class="font-bold text-gray-900 mb-3">Expert Flight Tips</h4>
+                                <div class="bg-orange-50 rounded-xl p-4 border border-orange-100">
+                                    <ul class="space-y-2">
+                                        @foreach($flightRecommendation->travel_tips as $tip)
+                                        <li class="flex items-start text-sm text-orange-900">
+                                            <svg class="w-4 h-4 text-orange-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            {{ $tip }}
+                                        </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                            @endif
+
+                            <div class="pt-2">
+                                <h4 class="font-bold text-gray-900 mb-3">Compare Prices</h4>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <a href="https://www.skyscanner.com/transport/flights-from/{{ strtolower(substr($flightRecommendation->airports->first()->code ?? 'any', 0, 3)) }}/{{ strtolower(substr($tripDetails->location, 0, 3)) }}" target="_blank" class="flex items-center justify-center py-2.5 px-4 bg-[#00a7e7]/10 text-[#00a7e7] hover:bg-[#00a7e7] hover:text-white rounded-xl font-bold transition-all text-sm group">
+                                        Skyscanner
+                                        <svg class="w-4 h-4 ml-1 opacity-50 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                    </a>
+                                    <a href="https://www.kayak.com/flights" target="_blank" class="flex items-center justify-center py-2.5 px-4 bg-[#ff690f]/10 text-[#ff690f] hover:bg-[#ff690f] hover:text-white rounded-xl font-bold transition-all text-sm group">
+                                        Kayak
+                                        <svg class="w-4 h-4 ml-1 opacity-50 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                    </a>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-2 text-center">External links open in new tab</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Where to Stay -->
             <div>
@@ -422,6 +530,23 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Map Modal -->
+<div id="map-modal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col" style="height: 80vh; min-height: 500px;" id="map-modal-content">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-white z-10">
+            <h3 class="text-xl font-bold text-gray-900">Day <span id="map-modal-day"></span> Route</h3>
+            <button onclick="closeMapModal()" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="flex-1 relative bg-gray-50 w-full h-full">
+            <div id="itinerary-map" class="absolute inset-0 w-full h-full" style="min-height: 100%;"></div>
+        </div>
+    </div>
+</div>
+
 </div>
 
 <!-- Add Activity Modal -->
@@ -838,6 +963,136 @@
 
         images.forEach(img => observer.observe(img));
     });
+
+    // Map Logic
+    let map = null;
+    let markers = [];
+    let polyline = null;
+    
+    // Store all activities
+    const allActivities = [
+        @foreach($itineraries as $itinerary)
+            @foreach($itinerary->activities as $activity)
+                @if(isset($activity->coordinates) && !empty($activity->coordinates))
+                    {
+                        day: {{ $itinerary->day }},
+                        name: @json($activity->name),
+                        description: @json(Str::limit($activity->description, 100)),
+                        coordinates: @json($activity->coordinates),
+                        image: @json($activity->image_url)
+                    },
+                @endif
+            @endforeach
+        @endforeach
+    ];
+
+    function openMapModal(day) {
+        document.getElementById('map-modal-day').textContent = day;
+        const modal = document.getElementById('map-modal');
+        modal.classList.remove('hidden');
+        
+        // Filter activities for this day
+        const dayActivities = allActivities.filter(a => a.day === day);
+        
+        // Initialize map if needed, with a slight delay to ensure container is visible
+        setTimeout(() => {
+            initDayMap(dayActivities);
+        }, 100);
+    }
+
+    function closeMapModal() {
+        document.getElementById('map-modal').classList.add('hidden');
+    }
+
+    function initDayMap(activities) {
+        const mapContainer = document.getElementById('itinerary-map');
+        if (!mapContainer) return;
+        
+        // Ensure container has dimensions
+        if (mapContainer.clientHeight === 0) {
+            mapContainer.style.height = '100%';
+        }
+
+        // Initialize map instance if it doesn't exist
+        if (!map) {
+            map = L.map('itinerary-map');
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 19
+            }).addTo(map);
+        }
+
+        // Clear existing markers/lines
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+        if (polyline) map.removeLayer(polyline);
+
+        // Force a resize check
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 10);
+
+        if (activities.length === 0) {
+            map.setView([0, 0], 2);
+            return;
+        }
+
+        const latLngs = [];
+        const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+        const dayColor = colors[(activities[0].day - 1) % colors.length];
+
+        activities.forEach((act, index) => {
+            const parts = act.coordinates.split(',').map(s => parseFloat(s.trim()));
+            if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                const lat = parts[0];
+                const lng = parts[1];
+                
+                const markerHtml = `
+                    <div class="w-8 h-8 rounded-full border-2 border-white shadow-md flex items-center justify-center text-sm font-bold text-white transform hover:scale-110 transition-transform" style="background-color: ${dayColor};">
+                        ${index + 1}
+                    </div>
+                `;
+                
+                const icon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: markerHtml,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
+                });
+
+                const marker = L.marker([lat, lng], { icon: icon }).addTo(map);
+                
+                const popupContent = `
+                    <div class="font-sans">
+                        <div class="relative h-32 bg-gray-100">
+                             <img src="${act.image || 'https://via.placeholder.com/300x150?text=No+Image'}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-3">
+                            <h4 class="font-bold text-gray-900 text-sm mb-1">${act.name}</h4>
+                            <p class="text-xs text-gray-500 mb-2 line-clamp-2">${act.description}</p>
+                            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.name)}" target="_blank" class="block text-center w-full py-1.5 bg-primary/10 text-primary text-xs font-bold rounded hover:bg-primary hover:text-white transition-colors">
+                                Get Directions
+                            </a>
+                        </div>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+                markers.push(marker);
+                latLngs.push([lat, lng]);
+            }
+        });
+
+        if (latLngs.length > 0) {
+            // Draw path
+            polyline = L.polyline(latLngs, { color: dayColor, weight: 3, opacity: 0.7, dashArray: '10, 10' }).addTo(map);
+            
+            // Fit bounds
+            const bounds = L.latLngBounds(latLngs);
+            map.fitBounds(bounds, { padding: [50, 50] });
+        }
+    }
 </script>
 
 @endsection

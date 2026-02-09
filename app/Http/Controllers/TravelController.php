@@ -25,6 +25,10 @@ use Exception;
 use App\Services\HotelRecommendationService;
 use App\Models\HotelRecommendation;
 use App\Models\UserRequest;
+use App\Models\FlightRecommendation;
+use App\Models\RecommendedAirport;
+use App\Models\RecommendedAirline;
+
 
 class TravelPlanException extends Exception
 {
@@ -159,6 +163,7 @@ class TravelController extends Controller
         // Validate and extract required fields
         $validated = $request->validate([
             'location' => 'required|string',
+            'origin' => 'nullable|string',
             'duration' => 'required|integer',
             'traveler' => 'required|string',
             'budget' => 'required|string',
@@ -213,7 +218,8 @@ class TravelController extends Controller
                     $validated['duration'],
                     $validated['traveler'],
                     $validated['budget'],
-                    $activities
+                    $activities,
+                    $validated['origin'] ?? null
                 );
 
                 $locationOverview = $this->saveTravelPlanToDatabase($travelPlan, $tripDetail, $checkInDate, $checkOutDate, $validated['budget']);
@@ -238,7 +244,8 @@ class TravelController extends Controller
             $validated['duration'],
             $validated['traveler'],
             $validated['budget'],
-            $activities
+            $activities,
+            $validated['origin'] ?? null
         );
 
         // Attach Google Places image
@@ -284,10 +291,10 @@ class TravelController extends Controller
 }
 
 
-    private function generateAndProcessTravelPlan($location, $totalDays, $traveler, $budget, $activities)
+    private function generateAndProcessTravelPlan($location, $totalDays, $traveler, $budget, $activities, $origin = null)
     {
         try {
-            $prompt = TravelPlanPrompt::generate($location, $totalDays, $traveler, $budget, $activities);
+            $prompt = TravelPlanPrompt::generate($location, $totalDays, $traveler, $budget, $activities, $origin);
             $apiKey = env('GOOGLE_GEN_AI_API_KEY');
 
             if (empty($apiKey)) {
@@ -368,6 +375,8 @@ class TravelController extends Controller
         $this->createItinerary($locationOverview, $travelPlan);
         $this->createCosts($locationOverview, $travelPlan);
         $this->createAdditionalInfo($locationOverview, $travelPlan);
+        $this->createFlightRecommendations($locationOverview, $travelPlan);
+
 
         // Get Agoda hotel recommendations
         $agodaHotels = $this->hotelRecommendationService->getHotelRecommendations(
@@ -547,6 +556,44 @@ class TravelController extends Controller
         }
     }
 
+    private function createFlightRecommendations($locationOverview, $travelPlan)
+    {
+        if (!isset($travelPlan['flight_recommendations'])) {
+            return;
+        }
+
+        $flightData = $travelPlan['flight_recommendations'];
+        
+        $recommendation = FlightRecommendation::create([
+            'location_overview_id' => $locationOverview->id,
+            'best_booking_time' => $flightData['best_booking_time'] ?? null,
+            'travel_tips' => $flightData['travel_tips'] ?? [],
+        ]);
+
+        if (isset($flightData['recommended_airports'])) {
+            foreach ($flightData['recommended_airports'] as $airport) {
+                RecommendedAirport::create([
+                    'flight_recommendation_id' => $recommendation->id,
+                    'name' => $airport['name'] ?? '',
+                    'code' => $airport['code'] ?? '',
+                    'distance_to_city' => $airport['distance_to_city'] ?? '',
+                ]);
+            }
+        }
+
+        if (isset($flightData['airlines'])) {
+            foreach ($flightData['airlines'] as $airline) {
+                RecommendedAirline::create([
+                    'flight_recommendation_id' => $recommendation->id,
+                    'name' => $airline['name'] ?? '',
+                    'typical_price_range' => $airline['typical_price_range'] ?? '',
+                    'flight_duration' => $airline['flight_duration'] ?? null,
+                    'notes' => $airline['notes'] ?? null,
+                ]);
+            }
+        }
+    }
+
     private function updateGooglePlaceImage($tripDetail, $location)
     {
         $google_place_image = GooglePlacesHelper::getPlacePhotoUrl($location);
@@ -611,6 +658,10 @@ class TravelController extends Controller
             'cost'                  => Cost::with(['transportationCosts', 'diningCosts'])
                 ->where('location_overview_id', $tripId)
                 ->firstOrFail(),
+            'flightRecommendation'  => FlightRecommendation::with(['airports', 'airlines'])
+                ->where('location_overview_id', $tripId)
+                ->first(),
+
             'additionalInfo'        => AdditionalInformation::where('location_overview_id', $tripId)->first(),
             'tripDetails'           => $tripDetails,
             'referenceCode'         => $tripDetails->reference_code,
@@ -1157,6 +1208,23 @@ class TravelController extends Controller
             }
         }
 
+        // Convert flight recommendations to object
+        $flightRecommendation = null;
+        if (isset($tempPlan['plan']['flight_recommendations'])) {
+            $flightData = $tempPlan['plan']['flight_recommendations'];
+            
+            $flightRecommendation = (object) [
+                'best_booking_time' => $flightData['best_booking_time'] ?? null,
+                'travel_tips' => $flightData['travel_tips'] ?? [],
+                'airports' => collect($flightData['recommended_airports'] ?? [])->map(function($airport) {
+                    return (object) $airport;
+                }),
+                'airlines' => collect($flightData['airlines'] ?? [])->map(function($airline) {
+                    return (object) $airline;
+                })
+            ];
+        }
+
         return view('pages.tempTravelResult', compact(
             'tripDetails',
             'locationOverview',
@@ -1164,6 +1232,7 @@ class TravelController extends Controller
             'securityAdvice',
             'hotels',
             'itineraries',
+            'flightRecommendation',
             'cityId'
         ));
     }

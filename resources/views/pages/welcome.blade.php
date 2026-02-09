@@ -62,6 +62,25 @@
 
                         <form action="{{route('createPlan')}}" method="GET" class="space-y-5">
                             <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">Origin (Optional)</label>
+                                <div class="relative group">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400 group-focus-within:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <input type="text"
+                                        id="origin"
+                                        name="origin"
+                                        class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50/50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary focus:bg-white transition-all duration-200 sm:text-sm"
+                                        placeholder="e.g. New York, London (Leave empty for general advice)"
+                                        autocomplete="off">
+                                    <div id="origin-suggestions" class="absolute z-10 mt-1 w-full bg-white shadow-xl max-h-60 rounded-xl py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm d-none"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">Destination</label>
                                 <div class="relative group">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -256,64 +275,73 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
-        let searchTimeout;
-        const $suggestionsContainer = $('#suggestions');
-        const $locationInput = $('#location');
+        function setupLocationSearch(inputId, suggestionsId) {
+            let searchTimeout;
+            const $locationInput = $(inputId);
+            const $suggestionsContainer = $(suggestionsId);
 
-        $locationInput.on('input', function() {
-            const searchTerm = $(this).val().trim();
+            $locationInput.on('input', function() {
+                const searchTerm = $(this).val().trim();
 
-            clearTimeout(searchTimeout);
+                clearTimeout(searchTimeout);
 
-            if (searchTerm.length < 2) {
+                if (searchTerm.length < 2) {
+                    $suggestionsContainer.removeClass('show').addClass('d-none');
+                    return;
+                }
+
+                $suggestionsContainer
+                    .html(`
+                        <div class="suggestion-item flex items-center space-x-2 animate-pulse text-gray-600" role="option">
+                            <svg class="w-5 h-5 text-primary animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                            </svg>
+                            <span>Loading suggestions...</span>
+                        </div>
+                    `)
+                    .removeClass('d-none').addClass('show');
+
+                searchTimeout = setTimeout(() => {
+                    $.get('/api/location-suggestions', {
+                            term: searchTerm
+                        })
+                        .done(function(response) {
+                            if (response && response.length > 0) {
+                                let suggestionsHtml = '';
+                                response.forEach(function(suggestion) {
+                                    suggestionsHtml += `<div class="suggestion-item" role="option">${suggestion.DisplayText}</div>`;
+                                });
+                                $suggestionsContainer.html(suggestionsHtml).removeClass('d-none').addClass('show');
+                            } else {
+                                $suggestionsContainer.html('<div class="suggestion-item" role="option">No results found</div>').addClass('show');
+                            }
+                        })
+                        .fail(function() {
+                            $suggestionsContainer.html('<div class="suggestion-item" role="option">Error loading suggestions</div>').addClass('show');
+                        });
+                }, 300);
+            });
+
+            // Handle click on suggestion
+            $suggestionsContainer.on('click', '.suggestion-item', function() {
+                $locationInput.val($(this).text());
                 $suggestionsContainer.removeClass('show').addClass('d-none');
-                return;
-            }
+            });
 
-            $suggestionsContainer
-                .html(`
-                    <div class="suggestion-item flex items-center space-x-2 animate-pulse text-gray-600" role="option">
-                        <svg class="w-5 h-5 text-primary animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                        </svg>
-                        <span>Loading suggestions...</span>
-                    </div>
-                `)
-                .removeClass('d-none').addClass('show');
+            // Hide suggestions on outside click
+            // Use closest('.group') relative to the input field's container
+            // This ensures clicking one input closes the OTHER's suggestions
+            const $wrapper = $locationInput.closest('.group');
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest($wrapper).length) {
+                    $suggestionsContainer.removeClass('show').addClass('d-none');
+                }
+            });
+        }
 
-            searchTimeout = setTimeout(() => {
-                $.get('/api/location-suggestions', {
-                        term: searchTerm
-                    })
-                    .done(function(response) {
-                        if (response && response.length > 0) {
-                            let suggestionsHtml = '';
-                            response.forEach(function(suggestion) {
-                                suggestionsHtml += `<div class="suggestion-item" role="option">${suggestion.DisplayText}</div>`;
-                            });
-                            $suggestionsContainer.html(suggestionsHtml).removeClass('d-none').addClass('show');
-                        } else {
-                            $suggestionsContainer.html('<div class="suggestion-item" role="option">No results found</div>').addClass('show');
-                        }
-                    })
-                    .fail(function() {
-                        $suggestionsContainer.html('<div class="suggestion-item" role="option">Error loading suggestions</div>').addClass('show');
-                    });
-            }, 300);
-        });
-
-        // Handle click on suggestion
-        $suggestionsContainer.on('click', '.suggestion-item', function() {
-            $locationInput.val($(this).text());
-            $suggestionsContainer.removeClass('show').addClass('d-none');
-        });
-
-        // Hide suggestions on outside click
-        $(document).on('click', function(e) {
-            if (!$(e.target).closest('.form-group').length) {
-                $suggestionsContainer.removeClass('show').addClass('d-none');
-            }
-        });
+        // Initialize for both inputs
+        setupLocationSearch('#location', '#suggestions');
+        setupLocationSearch('#origin', '#origin-suggestions');
     });
 </script>

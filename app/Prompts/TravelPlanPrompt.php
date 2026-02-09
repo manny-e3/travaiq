@@ -14,13 +14,15 @@ class TravelPlanPrompt
      * @param string $activities
      * @return string
      */
-    public static function generate(string $location, int $totalDays, string $traveler, string $budget, string $activities): string
+    public static function generate(string $location, int $totalDays, string $traveler, string $budget, string $activities, ?string $origin = null): string
     {
+        $originText = $origin ? "Origin: {$origin}" : "Origin: User did not specify (Assume major international hubs)";
         
         $prompt = <<<PROMPT
         You are a travel planning assistant. Generate a travel plan based on the following specifications and return it ONLY as a valid JSON object. Do not include any other text or explanations.
 
         Location: {$location}
+        {$originText}
         Duration: {$totalDays} days
         Travelers: {$traveler}
         Budget Level: {$budget}
@@ -28,11 +30,11 @@ class TravelPlanPrompt
 
         Please ensure:
         - Generate a complete itinerary for ALL {$totalDays} days of the trip
-        - Each day in the itinerary includes at least **4 activities** with descriptions, cost, duration, best times, coordinates, addresses, phone numbers, websites, and fees.
+        - Each day in the itinerary includes at least **4 activities** with descriptions, cost, duration, best times, coordinates (latitude, longitude), addresses, phone numbers, websites, and fees.
         - Include landmarks and cultural highlights under `location_overview`.
         - Prices are in the dollar.
         - Include comprehensive security advice specific to the location.
-        - Include recommended flight options with airlines and typical price ranges.
+        - Include recommended flight options from the **Origin** (if provided) or major hubs to {$location}.
 
 Return a JSON object with these exact keys:
 {
@@ -65,7 +67,7 @@ Return a JSON object with these exact keys:
                 {
                     "name": "string",
                     "description": "string",
-                    "coordinates": "string",
+                    "coordinates": "latitude, longitude",
                     "address": "string",
                     "cost": "string",
                     "duration": "string",
@@ -95,11 +97,13 @@ Return a JSON object with these exact keys:
         "transportation_options": "string"
     },
     "flight_recommendations": {
+        "best_booking_time": "string (e.g. 3 months in advance)",
+        "travel_tips": ["string"],
         "recommended_airports": [
             {"name": "string", "code": "string", "distance_to_city": "string"}
         ],
         "airlines": [
-            {"name": "string", "typical_price_range": "string"}
+            {"name": "string", "typical_price_range": "string", "flight_duration": "string", "notes": "string"}
         ]
     }
 }
