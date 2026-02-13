@@ -14,15 +14,17 @@ class TravelPlanPrompt
      * @param string $activities
      * @return string
      */
-    public static function generate(string $location, int $totalDays, string $traveler, string $budget, string $activities, ?string $origin = null): string
+    public static function generate(string $location, int $totalDays, string $traveler, string $budget, string $activities, ?string $origin = null, ?string $travelDate = null): string
     {
         $originText = $origin ? "Origin: {$origin}" : "Origin: User did not specify (Assume major international hubs)";
+        $dateContext = $travelDate ? "Travel Date: {$travelDate}" : "Travel Date: Not specified (Assume generic seasonal info)";
         
         $prompt = <<<PROMPT
         You are a travel planning assistant. Generate a travel plan based on the following specifications and return it ONLY as a valid JSON object. Do not include any other text or explanations.
 
         Location: {$location}
         {$originText}
+        {$dateContext}
         Duration: {$totalDays} days
         Travelers: {$traveler}
         Budget Level: {$budget}
@@ -93,7 +95,7 @@ Return a JSON object with these exact keys:
         "local_currency": "string",
         "exchange_rate": "string",
         "timezone": "string",
-        "weather_forecast": "string",
+        "weather_forecast": "string (Strict format: 'Min-Max°C / Min-Max°F, Summary'. NO sentences. Example: '20-25°C / 68-77°F, Warm & Sunny')",
         "transportation_options": "string"
     },
     "flight_recommendations": {

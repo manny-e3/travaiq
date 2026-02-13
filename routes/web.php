@@ -9,6 +9,8 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\GoogleOneTapController;
+use App\Http\Controllers\PublicTripController;
+use App\Http\Controllers\HomeController;
 
 Route::get('/clear-cache', function () {
     Artisan::call('config:clear');
@@ -16,11 +18,10 @@ Route::get('/clear-cache', function () {
     Artisan::call('view:clear');
     Artisan::call('optimize:clear');
     return "Cache cleared successfully!";
+    return "Cache cleared successfully!";
 });
 
-Route::get('/', function () {
-    return view('pages.welcome');
-});
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/create-plan', function () {
     return view('pages.createPlan');
@@ -62,6 +63,11 @@ Route::get('/update-missing-images', [TravelController::class, 'updateMissingIma
 
 // Parameterized routes last
 Route::get('/trips/{tripId}', [TravelController::class, 'show'])->name('trips.show');
+
+// Public Trip Routes
+Route::get('/trip/{reference}/{location?}', [PublicTripController::class, 'show'])->name('public.trip.show');
+Route::get('/itinerary/{location}/{days}-days', [PublicTripController::class, 'seoLanding'])->name('public.trip.landing');
+Route::get('/itineraries', [PublicTripController::class, 'index'])->name('public.trip.index');
 
 // Route for generating travel plan (assuming you already have this)
 Route::post('/generate-travel-plan', [TravelController::class, 'generateTravelPlan'])->name('travel.generate');
