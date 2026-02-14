@@ -104,7 +104,11 @@
                             <form action="{{ route('travel.generate') }}" method="POST" class="inline-block">
                                 @csrf
                                 <input type="hidden" name="location" value="{{ $trip->location }}">
-                                <input type="hidden" name="travel_date" value="{{ \Carbon\Carbon::now()->addDays(30)->format('Y-m-d') }}">
+                                <input type="hidden" name="travel" value="{{ \Carbon\Carbon::now()->addDays(30)->format('Y-m-d') }}">
+                                <input type="hidden" name="duration" value="{{ $trip->duration }}">
+                                <input type="hidden" name="budget" value="{{ $trip->budget }}">
+                                <input type="hidden" name="traveler" value="{{ $trip->traveler }}">
+                                <input type="hidden" name="activities" value="{{ json_encode(array_map('trim', explode(',', $trip->activities))) }}">
                                 <button type="submit" class="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-dark transition-colors shadow-lg shadow-primary/30 transform hover:-translate-y-0.5 duration-200">
                                     Customize & Book This Trip
                                 </button>
