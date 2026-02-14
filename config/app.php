@@ -55,9 +55,9 @@ return [
     |
     */
 
-    'url'             => env('APP_URL', 'http://localhost/travaiq'),
+    'url'             => env('APP_URL', 'https://travaiq.com/'),
 
-    'asset_url'       => env('ASSET_URL', 'http://localhost/travaiq/public'),
+    'asset_url'       => env('ASSET_URL', 'https://travaiq.com/public'),
 
     /*
     |--------------------------------------------------------------------------
