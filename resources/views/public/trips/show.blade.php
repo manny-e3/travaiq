@@ -101,7 +101,7 @@
                             <h3 class="text-2xl font-bold text-gray-900 mb-2">Want to customize this trip?</h3>
                             <p class="text-gray-600 mb-6 max-w-lg mx-auto">Use this itinerary as a base and let our AI tailor it to your specific budget, dates, and preferences.</p>
                             
-                            <form action="{{ route('travel.generate') }}" method="POST" class="inline-block">
+                            <form id="customize-form" action="{{ route('travel.generate') }}" method="POST" class="inline-block">
                                 @csrf
                                 <input type="hidden" name="location" value="{{ $trip->location }}">
                                 <input type="hidden" name="travel" value="{{ \Carbon\Carbon::now()->addDays(30)->format('Y-m-d') }}">
@@ -138,4 +138,64 @@
         </div>
     </div>
 </div>
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-white/90 z-50 hidden flex items-center justify-center backdrop-blur-md">
+    <div class="text-center max-w-md px-8 animate__animated animate__fadeInUp">
+        <div class="relative w-24 h-24 mx-auto mb-8">
+            <div class="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <svg class="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+            </div>
+        </div>
+        
+        <h3 class="text-2xl font-bold text-gray-900 mb-2">Designing Your Trip</h3>
+        <p class="text-gray-500 mb-6" id="progressStatus">Analyzing preferences...</p>
+        
+        <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden mb-2">
+            <div class="h-full bg-primary rounded-full transition-all duration-500 ease-out" id="progressBar" style="width: 0%"></div>
+        </div>
+        <p class="text-sm font-medium text-primary mt-2" id="progressCounter">0%</p>
+    </div>
+</div>
+
+<script>
+    document.getElementById('customize-form').addEventListener('submit', function() {
+        document.getElementById('loading-overlay').classList.remove('hidden');
+        startProgress();
+    });
+
+    function startProgress() {
+        let progress = 0;
+        const progressBar = document.getElementById('progressBar');
+        const progressCounter = document.getElementById('progressCounter');
+        const progressStatus = document.getElementById('progressStatus');
+        
+        const stages = [
+            { p: 15, t: 'Analyzing location...' },
+            { p: 30, t: 'Checking weather patterns...' },
+            { p: 50, t: 'Finding hidden gems...' },
+            { p: 70, t: 'Curating attractions...' },
+            { p: 90, t: 'Finalizing your plan...' }
+        ];
+        
+        let stageIdx = 0;
+        const interval = setInterval(() => {
+            if (progress < 95) {
+                progress += Math.random() * 2;
+                if (progress > 95) progress = 95;
+                
+                progressBar.style.width = `${progress}%`;
+                progressCounter.innerText = `${Math.floor(progress)}%`;
+                
+                if (stageIdx < stages.length && progress > stages[stageIdx].p) {
+                    progressStatus.innerText = stages[stageIdx].t;
+                    stageIdx++;
+                }
+            } else {
+                clearInterval(interval);
+            }
+        }, 100);
+    }
+</script>
 @endsection
