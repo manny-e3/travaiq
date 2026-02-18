@@ -34,7 +34,7 @@ class PublicTripController extends Controller
 
     public function index()
     {
-        $trips = TripDetail::latest()->paginate(12);
+       TripDetail::latest()->paginate(1);
         return view('public.trips.index', compact('trips'));
     }
 }

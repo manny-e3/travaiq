@@ -131,7 +131,7 @@
                                     <button type="button" onclick="decrementDays()" class="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-primary transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
                                     </button>
-                                    <input type="number" value="3" id="daysInput" name="duration" min="1" max="5" required readonly
+                                    <input type="number" value="3" id="daysInput" name="duration" min="1" max="10" required readonly
                                         class="w-12 text-center text-lg font-bold text-gray-900 border-none p-0 focus:ring-0" />
                                     <span class="text-sm text-gray-400 font-medium mr-2">Days</span>
                                     <button type="button" onclick="incrementDays()" class="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-primary transition-colors">
@@ -252,6 +252,31 @@
         </div>
     </div>
 
+    <!-- Login Modal -->
+    <div id="loginModal" class="d-none fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all scale-100 animate__animated animate__fadeInUp">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Extend Your Trip</h3>
+                <p class="text-gray-600 mb-6">
+                    Guests can plan trips up to 5 days. Log in to create longer itineraries (up to 10 days) and save your plans!
+                </p>
+                <div class="flex flex-col gap-3">
+                    <a href="{{ route('loginRegister') }}" class="w-full py-3 px-6 rounded-xl bg-primary text-white font-bold hover:bg-primary-dark transition-colors border border-transparent">
+                        Log In / Sign Up
+                    </a>
+                    <button type="button" onclick="closeLoginModal()" class="w-full py-3 px-6 rounded-xl bg-white text-gray-700 font-bold hover:bg-gray-50 transition-colors border border-gray-200">
+                        Maybe Later
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <style>
         .d-none { display: none !important; }
@@ -265,6 +290,7 @@
         let selectedBudget = null;
         let selectedCompanion = null;
         let selectedActivities = [];
+        const isUserLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
 
         // UI Helpers
         function decrementDays() {
@@ -274,7 +300,26 @@
 
         function incrementDays() {
             const input = document.getElementById('daysInput');
-            if (input.value < input.max) input.value = parseInt(input.value) + 1;
+            const val = parseInt(input.value);
+            
+            // Guest Limit Check
+            if (!isUserLoggedIn && val >= 5) {
+                showLoginModal();
+                return;
+            }
+
+            // Max Limit Check
+            if (val < 10) {
+                input.value = val + 1;
+            }
+        }
+
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.remove('d-none');
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.add('d-none');
         }
 
         function setBudget(budget) {
