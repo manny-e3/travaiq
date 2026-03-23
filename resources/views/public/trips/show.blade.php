@@ -53,6 +53,7 @@
                              <div class="text-sm text-gray-500">Duration</div>
                              <div class="font-bold text-gray-900">{{ $trip->duration }} Days</div>
                          </div>
+
                      </div>
                 </div>
 
@@ -129,6 +130,8 @@
                             Start Planning
                         </a>
                         
+
+
                          <button onclick="navigator.clipboard.writeText(window.location.href); alert('Link copied!');" class="block w-full text-center bg-gray-50 text-gray-900 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors border border-gray-200">
                             Share Trip
                         </button>
@@ -160,6 +163,7 @@
 </div>
 
 <script>
+
     document.getElementById('customize-form').addEventListener('submit', function() {
         document.getElementById('loading-overlay').classList.remove('hidden');
         startProgress();

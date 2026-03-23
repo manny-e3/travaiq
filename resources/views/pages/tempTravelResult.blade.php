@@ -227,6 +227,8 @@
                     </div>
                 </div>
             </div>
+
+
         @endforeach
     </div>
 </div>
@@ -309,21 +311,23 @@
                             </div>
                             @endif
 
-                            <div class="pt-2">
-                                <h4 class="font-bold text-gray-900 mb-3">Compare Prices</h4>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <a href="https://www.skyscanner.com/transport/flights-from/{{ strtolower(substr($flightRecommendation->airports->first()->code ?? 'any', 0, 3)) }}/{{ strtolower(substr($tripDetails->location, 0, 3)) }}" target="_blank" class="flex items-center justify-center py-2.5 px-4 bg-[#00a7e7]/10 text-[#00a7e7] hover:bg-[#00a7e7] hover:text-white rounded-xl font-bold transition-all text-sm group">
-                                        Skyscanner
-                                        <svg class="w-4 h-4 ml-1 opacity-50 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                    </a>
-                                    <a href="https://www.kayak.com/flights" target="_blank" class="flex items-center justify-center py-2.5 px-4 bg-[#ff690f]/10 text-[#ff690f] hover:bg-[#ff690f] hover:text-white rounded-xl font-bold transition-all text-sm group">
-                                        Kayak
-                                        <svg class="w-4 h-4 ml-1 opacity-50 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                    </a>
-                                </div>
-                                <p class="text-xs text-gray-400 mt-2 text-center">External links open in new tab</p>
-                            </div>
+                         
+                               
+                                
+                          
                         </div>
+                        <!-- Affiliate Banner: Flight/Airport Related -->
+                    <div class="mt-8 border-t border-gray-100 pt-8 col-span-1 md:col-span-2 w-full">
+                        <div class="w-full bg-white hover:bg-gray-50 transition-colors  border-gray-200 flex flex-col items-center justify-center p-6 sm:p-8 hover:border-blue-300 relative group overflow-hidden">
+                             <div class="text-center mb-5">
+                                 <h4 class="font-bold text-gray-900 mb-2 text-lg">Find the Best Flight Deals</h4>
+                                 <p class="text-sm text-gray-500">Compare prices and book your flights early for the best rates.</p>
+                             </div>
+                             <a rel="sponsored" href="https://www.awin1.com/cread.php?s=3954194&v=112836&q=513427&r=2013379" target="_blank" class="block w-full max-w-4xl mx-auto rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+                                 <img src="https://www.awin1.com/cshow.php?s=3954194&v=112836&q=513427&r=2013379" alt="Flight Deals" class="w-full h-auto object-cover block">
+                             </a>
+                        </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -389,6 +393,20 @@
         <div class="lg:col-span-1">
             <div class="sticky top-24 space-y-6">
                 
+                <!-- Affiliate Banner: Sidebar Top -->
+                <div class="bg-gray-50 flex items-center justify-center p-6 text-gray-400 relative group min-h-[300px] hover:border-primary/50 transition-colors">
+                    <div class="text-center w-full">
+                       
+                        <div class="w-full h-[150px] bg-white rounded-xl mb-4 flex flex-col items-center justify-center border border-gray-200 group-hover:border-primary/30 transition-colors shadow-sm">
+                          <a rel="sponsored" target="_blank" href="https://www.awin1.com/cread.php?s=3975181&v=115715&q=516084&r=2013379" class="flex justify-center">
+                            <img src="https://www.awin1.com/cshow.php?s=3975181&v=115715&q=516084&r=2013379" border="0" class="max-h-[90px] w-auto object-contain hover:scale-105 transition-transform duration-300" style="max-height: 350px; width: auto; object-fit: contain; transition: transform 0.3s ease;" >
+                          </a>
+                        </div>
+                        
+
+                    </div>
+                </div>
+
                 <!-- Action Card -->
                 <div class="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
                     <div class="mb-6">
@@ -499,6 +517,26 @@
                             <p class="text-xs text-yellow-800 italic">"{{ $tips[0] }}"</p>
                         </div>
                     @endif
+                </div>
+
+                <!-- Affiliate Banner: Sticky Sidebar Vertical -->
+                <div class="bg-gray-50 rounded-2xl  flex items-center ">
+                    <!-- Replace this with your actual vertical affiliate code -->
+                    <div class="text-center w-full">
+                    
+                        <div class="w-full h-[250px] bg-white rounded-xl mb-4 flex flex-col items-center justify-center border border-gray-200 group-hover:border-primary/30 transition-colors shadow-sm">
+                           
+<!-- START ADVERTISER: GoWithGuide US from awin.com -->
+
+<a rel="sponsored" href="https://www.awin1.com/cread.php?s=3795062&v=87121&q=496538&r=2013379">
+    <img src="https://www.awin1.com/cshow.php?s=3795062&v=87121&q=496538&r=2013379" border="0">
+</a>
+
+<!-- END ADVERTISER: GoWithGuide US from awin.com -->
+
+                        </div>
+                       
+                    </div>
                 </div>
 
             </div>

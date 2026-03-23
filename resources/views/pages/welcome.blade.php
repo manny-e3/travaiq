@@ -138,6 +138,23 @@
     </div>
 </section>
 
+<!-- Affiliate Banner: Home Page Top (Between Hero and Recent Itineraries) -->
+<section class="py-12 bg-white border-b border-gray-100 relative z-10">
+    <div class="container mx-auto px-4 max-w-6xl">
+        <div class="w-full bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center p-6 sm:h-32 text-gray-400 relative overflow-hidden group hover:border-primary/50 transition-colors">
+            <!-- Replace this div with your actual <a><img> affiliate link HTML -->
+            <div class="text-center z-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
+                <span class="text-[10px] uppercase font-bold tracking-widest border border-gray-200 bg-white px-2 py-1 rounded shadow-sm text-gray-400">Advertisement</span>
+                <div class="flex-1 max-w-xl">
+                    <p class="text-sm font-bold text-gray-600 mb-1">Your Horizontal Affiliate Banner Here</p>
+                    <p class="text-xs">Perfect spot for a 728x90 or 970x90 travel credit card, flight deal, or eSIM banner.</p>
+                </div>
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none"></div>
+        </div>
+    </div>
+</section>
+
 <!-- Example Itineraries Section -->
 @if(isset($exampleTrips) && $exampleTrips->count() > 0)
 <section class="py-20 bg-gray-50">
@@ -250,6 +267,29 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- Affiliate Banner: Home Page Bottom (Hero Style before FAQ) -->
+<section class="py-16 bg-white border-t border-gray-50">
+    <div class="container mx-auto px-4 max-w-5xl">
+        <div class="w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-[2rem] border-2 border-dashed border-gray-300 flex flex-col md:flex-row items-center justify-between p-8 md:p-12 text-gray-500 relative overflow-hidden group hover:border-primary/40 transition-colors">
+            <!-- Replace this entire section with your actual affiliate content/banner -->
+            <div class="z-10 mb-8 md:mb-0 text-center md:text-left flex-1 md:pr-12">
+                <span class="inline-block px-3 py-1 bg-white rounded-full text-[10px] font-bold tracking-widest uppercase mb-4 border border-gray-200 shadow-sm text-gray-500">Partner Offer</span>
+                <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3">Your Premium Affiliate Offer Here</h3>
+                <p class="text-sm text-gray-600 max-w-md mx-auto md:mx-0">Replace this block with a large travel credit card offer, specialized travel insurance promo, or premium luggage brand advertisement.</p>
+            </div>
+            <div class="z-10 flex-shrink-0 w-full md:w-auto">
+                 <div class="h-48 md:h-56 w-full md:w-80 bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center justify-center text-xs group-hover:shadow-md transition-shadow">
+                     <svg class="w-10 h-10 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                     <span class="font-bold uppercase tracking-widest text-gray-400">Ad Image Space</span>
+                 </div>
+            </div>
+             <!-- Decorative background blobs -->
+             <div class="absolute -right-24 -top-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+             <div class="absolute -left-24 -bottom-24 w-64 h-64 bg-accent/5 rounded-full blur-3xl pointer-events-none"></div>
         </div>
     </div>
 </section>

@@ -110,7 +110,7 @@
 
 
                 <div class="space-y-6">
-                    @foreach ($itineraries as $itinerary)
+                    @foreach ($itineraries as $index => $itinerary)
                     <div class="group relative pl-4 sm:pl-8 border-l-2 border-dashed border-gray-200 hover:border-primary transition-colors duration-300">
                         <!-- Day Marker -->
                         <div class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-white border-2 border-primary flex items-center justify-center font-bold text-xs text-primary shadow-sm group-hover:scale-110 transition-transform">
@@ -198,6 +198,22 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Affiliate Banner: Mid Itinerary (After Day 2) -->
+                    <!-- @if($index == 1)
+                    <div class="pl-4 sm:pl-8 py-2">
+                        <div class="w-full bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center p-4 min-h-[100px] text-gray-400 relative hover:border-primary/50 transition-colors">
+                            <div class="text-center z-10 w-full px-4 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6">
+                                <span class="text-[9px] uppercase font-bold tracking-widest text-gray-400 border border-gray-200 px-2 py-0.5 rounded-sm bg-white shadow-sm">Advertisement</span>
+                                <div class="flex-1 max-w-md">
+                                    <p class="text-sm font-bold text-gray-600 mb-1">Book Top Activities for {{ $tripDetails->location }}</p>
+                                    <p class="text-xs">Place your GetYourGuide, Viator, or Klook horizontal banner (e.g. 728x90) here.</p>
+                                    <div data-gyg-href="https://widget.getyourguide.com/default/activities.frame" data-gyg-locale-code="en-US" data-gyg-widget="activities" data-gyg-number-of-items="3" data-gyg-partner-id="8WZ0ASL"><span>Powered by <a target="_blank" rel="sponsored" href="https://www.getyourguide.com/">GetYourGuide</a></span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif -->
                     @endforeach
                 </div>
             </div>
@@ -279,7 +295,7 @@
                             </div>
                             @endif
 
-                            <div class="pt-2">
+                            <!-- <div class="pt-2">
                                 <h4 class="font-bold text-gray-900 mb-3">Compare Prices</h4>
                                 <div class="grid grid-cols-2 gap-3">
                                     <a href="https://www.skyscanner.com/transport/flights-from/{{ strtolower(substr($flightRecommendation->airports->first()->code ?? 'any', 0, 3)) }}/{{ strtolower(substr($tripDetails->location, 0, 3)) }}" target="_blank" class="flex items-center justify-center py-2.5 px-4 bg-[#00a7e7]/10 text-[#00a7e7] hover:bg-[#00a7e7] hover:text-white rounded-xl font-bold transition-all text-sm group">
@@ -292,7 +308,20 @@
                                     </a>
                                 </div>
                                 <p class="text-xs text-gray-400 mt-2 text-center">External links open in new tab</p>
-                            </div>
+                            </div> -->
+                        </div>
+                    </div>
+
+                    <!-- Affiliate Banner: Flight/Airport Related -->
+                    <div class="mt-8 border-t border-gray-100 pt-8 col-span-1 md:col-span-2 w-full">
+                        <div class="w-full bg-white hover:bg-gray-50 transition-colors  border-gray-200 flex flex-col items-center justify-center p-6 sm:p-8 hover:border-blue-300 relative group overflow-hidden">
+                             <div class="text-center mb-5">
+                                 <h4 class="font-bold text-gray-900 mb-2 text-lg">Find the Best Flight Deals</h4>
+                                 <p class="text-sm text-gray-500">Compare prices and book your flights early for the best rates.</p>
+                             </div>
+                             <a rel="sponsored" href="https://www.awin1.com/cread.php?s=3954194&v=112836&q=513427&r=2013379" target="_blank" class="block w-full max-w-4xl mx-auto rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+                                 <img src="https://www.awin1.com/cshow.php?s=3954194&v=112836&q=513427&r=2013379" alt="Flight Deals" class="w-full h-auto object-cover block">
+                             </a>
                         </div>
                     </div>
                 </div>
@@ -337,12 +366,25 @@
                                 </div>
                             @endif
 
-                             <a href="{{ $hotel->booking_url ?? '#' }}" target="_blank" class="block w-full text-center py-2.5 rounded-xl bg-gray-900 text-white font-medium hover:bg-primary transition-colors text-sm">
+                     <a href="{{ $hotel->booking_url ?? '#' }}" target="_blank" class="block w-full text-center py-2.5 rounded-xl bg-gray-900 text-white font-medium hover:bg-primary transition-colors text-sm">
                                 View Deal
                              </a>
                         </div>
                     </div>
                     @endforeach
+
+                    <!-- Affiliate Banner: Where to Stay (Native Grid Item) -->
+                    <!-- <div class="bg-gray-50 rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 group hover:border-primary/50 transition-all duration-300 flex flex-col justify-center items-center p-6 text-center min-h-[300px]">
+                        <span class="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-4 block bg-white px-2 py-1 rounded shadow-sm">Advertisement</span>
+                        <div class="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-4 text-gray-400 group-hover:text-primary transition-colors">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </div>
+                        <h3 class="font-bold text-gray-700 mb-2">Can't find the perfect place?</h3>
+                        <p class="text-xs text-gray-500 mb-6 max-w-[200px] mx-auto">Place your general Booking.com, Airbnb, Vrbo, or Agoda banner here.</p>
+                        <div class="w-full h-12 bg-white rounded-xl border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">
+                            Ad Banner Space
+                        </div>
+                    </div> -->
                 </div>
             </div>
 
@@ -352,6 +394,21 @@
         <div class="lg:col-span-1">
             <div class="sticky top-24 space-y-6">
                 
+                <!-- Sustainability Card -->
+                <!-- Affiliate Banner: Sidebar Top -->
+                <div class="bg-gray-50 flex items-center justify-center p-6 text-gray-400 relative group min-h-[300px] hover:border-primary/50 transition-colors">
+                    <div class="text-center w-full">
+                       
+                        <div class="w-full h-[150px] bg-white rounded-xl mb-4 flex flex-col items-center justify-center border border-gray-200 group-hover:border-primary/30 transition-colors shadow-sm">
+                          <a rel="sponsored" target="_blank" href="https://www.awin1.com/cread.php?s=3975181&v=115715&q=516084&r=2013379" class="flex justify-center">
+                            <img src="https://www.awin1.com/cshow.php?s=3975181&v=115715&q=516084&r=2013379" border="0" class="max-h-[90px] w-auto object-contain hover:scale-105 transition-transform duration-300" style="max-height: 350px; width: auto; object-fit: contain; transition: transform 0.3s ease;" >
+                          </a>
+                        </div>
+                        
+
+                    </div>
+                </div>
+
                 <!-- Action Card -->
                 <div class="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
                     <div class="mb-6">
@@ -430,6 +487,10 @@
                     </div>
 
                     <div class="space-y-3">
+                        <button onclick="addToCalendar()" class="block w-full py-3 px-4 bg-white text-gray-700 border-2 border-gray-100 font-bold rounded-xl text-center hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
+                            <span>📅</span> Add to Calendar
+                        </button>
+
                         <button onclick="shareTrip()" class="block w-full py-3 px-4 bg-primary text-white font-bold rounded-xl text-center shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
                             Share My Trip
                         </button>
@@ -465,6 +526,26 @@
                             @endif
                         </div>
                     @endif
+                </div>
+
+                <!-- Affiliate Banner: Sticky Sidebar Vertical -->
+                <div class="bg-gray-50 rounded-2xl  flex items-center ">
+                    <!-- Replace this with your actual vertical affiliate code -->
+                    <div class="text-center w-full">
+                    
+                        <div class="w-full h-[250px] bg-white rounded-xl mb-4 flex flex-col items-center justify-center border border-gray-200 group-hover:border-primary/30 transition-colors shadow-sm">
+                           
+<!-- START ADVERTISER: GoWithGuide US from awin.com -->
+
+<a rel="sponsored" href="https://www.awin1.com/cread.php?s=3795062&v=87121&q=496538&r=2013379">
+    <img src="https://www.awin1.com/cshow.php?s=3795062&v=87121&q=496538&r=2013379" border="0">
+</a>
+
+<!-- END ADVERTISER: GoWithGuide US from awin.com -->
+
+                        </div>
+                       
+                    </div>
                 </div>
 
             </div>
@@ -799,10 +880,54 @@
                 url: window.location.href
             });
         } else {
-            navigator.clipboard.writeText(window.location.href);
-            alert('Link copied to clipboard!');
+            prompt('Copy this link to share:', window.location.href);
         }
     }
+
+    function addToCalendar() {
+        const tripTitle = "Trip to {{ $tripDetails->location }}";
+        const details = "Itinerary for {{ $tripDetails->duration }} days in {{ $tripDetails->location }}. View details: " + window.location.href;
+        const location = "{{ $tripDetails->location }}";
+        
+        // Calculate dates (assuming start from tomorrow for demo, or today)
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() + 1); // Start tomorrow
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + {{ $tripDetails->duration }});
+
+        const event = {
+            event_title_code: tripTitle,
+            event_description: details,
+            venue: location,
+            start_date: startDate.toISOString().split('T')[0],
+            start_time: '09:00',
+            end_date: endDate.toISOString().split('T')[0],
+            end_time: '18:00'
+        };
+
+        const url = createGoogleCalendarUrl(event);
+        window.open(url, '_blank');
+    }
+
+    function createGoogleCalendarUrl(event) {
+        const formatDateTime = (date, time) => {
+            const [hours, minutes] = time.split(':');
+            const dateTime = new Date(date);
+            dateTime.setHours(hours, minutes, 0); 
+            return dateTime.toISOString().replace(/-|:|\.\d\d\d/g, '');
+        };
+
+        const baseUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
+        const text = `&text=${encodeURIComponent(event.event_title_code)}`;
+        const startDateTime = formatDateTime(event.start_date, event.start_time);
+        const endDateTime = formatDateTime(event.end_date, event.end_time);
+        const dates = `&dates=${startDateTime}/${endDateTime}`;
+        const details = `&details=${encodeURIComponent(event.event_description)}`;
+        const location = `&location=${encodeURIComponent(event.venue || '')}`;
+
+        return `${baseUrl}${text}${dates}${details}${location}`;
+    }
+
 
     // Add Activity Logic
     let currentAddItineraryId = null;

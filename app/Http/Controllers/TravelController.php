@@ -28,6 +28,7 @@ use App\Models\UserRequest;
 use App\Models\FlightRecommendation;
 use App\Models\RecommendedAirport;
 use App\Models\RecommendedAirline;
+use App\Services\SustainabilityService;
 
 
 class TravelPlanException extends Exception
@@ -646,8 +647,11 @@ class TravelController extends Controller
             ]);
         }
 
+        $sustainability = (new SustainabilityService())->calculateTripFootprint($tripDetails);
+
         return view('pages.travelResult', [
             'tripId'                => $tripId,
+            'sustainability'        => $sustainability,
             'locationOverview'      => $locationOverview,
             'securityAdvice'        => $locationOverview->securityAdvice,
             'hotels'                => HotelRecommendation::where('location_overview_id', $tripId)->get(),
