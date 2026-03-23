@@ -528,7 +528,7 @@
                            
 <!-- START ADVERTISER: GoWithGuide US from awin.com -->
 
-<a rel="sponsored" href="https://www.awin1.com/cread.php?s=3795062&v=87121&q=496538&r=2013379">
+<a rel="sponsored" target="_blank" href="https://www.awin1.com/cread.php?s=3795062&v=87121&q=496538&r=2013379">
     <img src="https://www.awin1.com/cshow.php?s=3795062&v=87121&q=496538&r=2013379" border="0">
 </a>
 
