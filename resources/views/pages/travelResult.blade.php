@@ -535,13 +535,10 @@
                     
                         <div class="w-full h-[250px] bg-white rounded-xl mb-4 flex flex-col items-center justify-center border border-gray-200 group-hover:border-primary/30 transition-colors shadow-sm">
                            
-<!-- START ADVERTISER: GoWithGuide US from awin.com -->
+                    <a rel="sponsored" target="_blank" href="https://www.awin1.com/cread.php?s=3795062&v=87121&q=496538&r=2013379">
+                        <img src="https://www.awin1.com/cshow.php?s=3795062&v=87121&q=496538&r=2013379" border="0">
+                    </a>
 
-<a rel="sponsored" target="_blank" href="https://www.awin1.com/cread.php?s=3795062&v=87121&q=496538&r=2013379">
-    <img src="https://www.awin1.com/cshow.php?s=3795062&v=87121&q=496538&r=2013379" border="0">
-</a>
-
-<!-- END ADVERTISER: GoWithGuide US from awin.com -->
 
                         </div>
                        
