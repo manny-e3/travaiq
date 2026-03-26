@@ -88,6 +88,31 @@
             </div>
         </div>
 
+        <!-- GoWithGuide Advert Banner -->
+        <div class="mb-12 bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row items-center border border-gray-100 transform hover:shadow-2xl transition duration-300">
+            <div class="md:w-5/12 h-64 md:h-auto relative w-full h-full min-h-[250px]">
+               <a rel="sponsored" target="_blank" href="https://www.awin1.com/cread.php?s=3918144&v=87121&q=496538&r=2013379">
+    <img src="https://www.awin1.com/cshow.php?s=3918144&v=87121&q=496538&r=2013379" border="0">
+</a>
+            </div>
+            <div class="p-8 md:p-10 md:w-7/12 flex flex-col justify-center text-center md:text-left">
+                <!-- <div class="flex items-center justify-center md:justify-start gap-2 mb-3">
+                    <span class="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Sponsored</span>
+                </div> -->
+                <h3 class="text-3xl font-bold mb-4 text-gray-800">Experience Destinations Like a Local</h3>
+                <p class="text-gray-600 mb-6 text-lg">Don't just visit—truly experience your destination with GoWithGuide. Hire private, vetted local guides tailored to your unique interests and pace.</p>
+                <div>
+                    <!-- Replace the href with your actual GoWithGuide affiliate link -->
+                    <a href="https://www.awin1.com/cread.php?s=3918144&v=87121&q=496538&r=2013379" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full text-white bg-gradient-to-r from-primary to-primary-light hover:shadow-lg transition duration-300 transform hover:-translate-y-1">
+                        Find a Local Guide
+                        <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- Travel Tips -->
         <div class="mb-12">
             <h2 class="text-2xl font-semibold mb-6 text-center">Essential Travel Tips</h2>
