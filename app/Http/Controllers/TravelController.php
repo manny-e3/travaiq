@@ -28,6 +28,7 @@ use App\Models\UserRequest;
 use App\Models\FlightRecommendation;
 use App\Models\RecommendedAirport;
 use App\Models\RecommendedAirline;
+use App\Models\GuestTravelPlan;
 use App\Services\SustainabilityService;
 
 
@@ -258,16 +259,36 @@ class TravelController extends Controller
         }
         unset($itinerary, $activity);
 
+        // Save guest plan as a single JSON record for reporting (fast — 1 insert)
+        try {
+            GuestTravelPlan::create([
+                'reference_code' => $referenceCode,
+                'location'       => $validated['location'],
+                'duration'       => $validated['duration'],
+                'traveler'       => $validated['traveler'],
+                'budget'         => $validated['budget'],
+                'activities'     => $activities,
+                'travel_date'    => $validated['travel'],
+                'origin'         => $validated['origin'] ?? null,
+                'plan_data'      => $travelPlan,
+                'ip_address'     => $request->ip(),
+                'user_agent'     => $request->userAgent(),
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('Failed to save guest travel plan for reporting: ' . $e->getMessage());
+            // Non-fatal — guest still gets their result
+        }
+
         $tempPlanData = [
-            'plan' => $travelPlan,
+            'plan'           => $travelPlan,
             'reference_code' => $referenceCode,
-            'location' => $validated['location'],
-            'duration' => $validated['duration'],
-            'traveler' => $validated['traveler'],
-            'budget' => $validated['budget'],
-            'activities' => $activities,
-            'created_at' => now(),
-            'check_in_date' => $checkInDate,
+            'location'       => $validated['location'],
+            'duration'       => $validated['duration'],
+            'traveler'       => $validated['traveler'],
+            'budget'         => $validated['budget'],
+            'activities'     => $activities,
+            'created_at'     => now(),
+            'check_in_date'  => $checkInDate,
             'check_out_date' => $checkOutDate,
         ];
 

@@ -145,12 +145,16 @@
                                 <label class="block text-lg font-semibold text-gray-900">Estimated Budget <span class="text-sm font-normal text-gray-400 ml-2">(Excluding flights & accommodation)</span></label>
                                 <input type="hidden" name="budget" id="budgetInput" required>
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    @foreach([
-                                        ['id' => 'low', 'label' => 'Economy', 'range' => '$0 - $1,000', 'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
-                                        ['id' => 'medium', 'label' => 'Standard', 'range' => '$1,000 - $2,500', 'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z'],
-                                        ['id' => 'high', 'label' => 'Luxury', 'range' => '$2,500+', 'icon' => 'M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7']
-                                    ] as $budget)
-                                    <div class="budget-option relative p-6 rounded-2xl border-2 border-gray-100 cursor-pointer transition-all duration-200 hover:border-primary/50 hover:bg-gray-50 group bg-white"
+                                    @php
+                                    $budgets = [
+                                        ['id' => 'low',    'label' => 'Economy',  'range' => '$0 - $1,000',    'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'guest_locked' => false],
+                                        ['id' => 'medium', 'label' => 'Standard', 'range' => '$1,000 - $2,500', 'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z',   'guest_locked' => true],
+                                        ['id' => 'high',   'label' => 'Luxury',   'range' => '$2,500+',         'icon' => 'M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7',   'guest_locked' => true],
+                                    ];
+                                @endphp
+                                @foreach($budgets as $budget)
+                                    @php $locked = $budget['guest_locked'] && !auth()->check(); @endphp
+                                    <div class="budget-option relative p-6 rounded-2xl border-2 border-gray-100 cursor-pointer transition-all duration-200 hover:border-primary/50 hover:bg-gray-50 group bg-white {{ $locked ? 'guest-locked-option' : '' }}"
                                          onclick="setBudget('{{ $budget['id'] }}')">
                                         <div class="flex flex-col items-center text-center">
                                             <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
@@ -163,8 +167,17 @@
                                         <div class="absolute top-4 right-4 text-primary opacity-0 check-mark transition-opacity">
                                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         </div>
+                                        @if($locked)
+                                        <!-- Lock badge for guests -->
+                                        <!-- <div class="absolute inset-0 rounded-2xl bg-gray-50/80 flex items-center justify-center pointer-events-none">
+                                            <div class="flex flex-col items-center gap-1">
+                                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                                <span class="text-xs text-gray-500 font-medium">Login required</span>
+                                            </div>
+                                        </div> -->
+                                        @endif
                                     </div>
-                                    @endforeach
+                                @endforeach
                                 </div>
                             </div>
 
@@ -173,19 +186,28 @@
                                 <label class="block text-lg font-semibold text-gray-900">Who are you traveling with?</label>
                                 <input type="hidden" name="traveler" id="companionInput" required>
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    @foreach([
-                                        ['id' => 'Solo', 'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'],
-                                        ['id' => 'Couple', 'icon' => 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z'],
-                                        ['id' => 'Family', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z'],
-                                        ['id' => 'Friends', 'icon' => 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z']
-                                    ] as $comp)
-                                    <div class="companion-option relative p-4 rounded-xl border-2 border-gray-100 cursor-pointer transition-all duration-200 hover:border-primary/50 hover:bg-gray-50 group bg-white text-center"
-                                         onclick="setCompanion('{{ $comp['id'] }}')">
-                                        <div class="mx-auto w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $comp['icon'] }}"></path></svg>
+                                    @php
+                                        $companions = [
+                                            ['id' => 'Solo',    'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',                                                                                                                                                                                                                                                                                    'guest_locked' => false],
+                                            ['id' => 'Couple',  'icon' => 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',                                                                                                                                                                                                                               'guest_locked' => true],
+                                            ['id' => 'Family',  'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 'guest_locked' => true],
+                                            ['id' => 'Friends', 'icon' => 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',                                                                                                                                                                                                                                              'guest_locked' => true],
+                                        ];
+                                    @endphp
+                                    @foreach($companions as $comp)
+                                        @php $locked = $comp['guest_locked'] && !auth()->check(); @endphp
+                                        <div class="companion-option relative p-4 rounded-xl border-2 border-gray-100 cursor-pointer transition-all duration-200 hover:border-primary/50 hover:bg-gray-50 group bg-white text-center"
+                                             onclick="setCompanion('{{ $comp['id'] }}')">
+                                            <div class="mx-auto w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $comp['icon'] }}"></path></svg>
+                                            </div>
+                                            <span class="font-medium text-gray-700 group-hover:text-gray-900">{{ $comp['id'] }}</span>
+                                            @if($locked)
+                                            <!-- <div class="absolute inset-0 rounded-xl bg-gray-50/80 flex items-center justify-center pointer-events-none">
+                                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                            </div> -->
+                                            @endif
                                         </div>
-                                        <span class="font-medium text-gray-700 group-hover:text-gray-900">{{ $comp['id'] }}</span>
-                                    </div>
                                     @endforeach
                                 </div>
                             </div>
@@ -195,15 +217,29 @@
                                 <label class="block text-lg font-semibold text-gray-900">Interests & Activities</label>
                                 <input type="hidden" name="activities" id="activitiesInput" required>
                                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                                    @foreach([
-                                        'Beaches', 'City sightseeing', 'Outdoor adventures', 'Festivals/events',
-                                        'Food exploration', 'Nightlife', 'Shopping', 'Spa wellness'
-                                    ] as $activity)
-                                    <div class="activity-option px-4 py-3 rounded-xl border border-gray-200 cursor-pointer transition-all duration-200 hover:border-primary/50 hover:bg-purple-50 hover:text-primary text-gray-600 bg-white text-center text-sm font-medium"
-                                         onclick="toggleActivity('{{ $activity }}')" 
-                                         data-activity="{{ $activity }}">
-                                        {{ $activity }}
-                                    </div>
+                                    @php
+                                        $activities = [
+                                            ['name' => 'Beaches',              'guest_locked' => false],
+                                            ['name' => 'City sightseeing',     'guest_locked' => false],
+                                            ['name' => 'Outdoor adventures',   'guest_locked' => false],
+                                            ['name' => 'Festivals/events',     'guest_locked' => true],
+                                            ['name' => 'Food exploration',     'guest_locked' => true],
+                                            ['name' => 'Nightlife',            'guest_locked' => true],
+                                            ['name' => 'Shopping',             'guest_locked' => true],
+                                            ['name' => 'Spa wellness',         'guest_locked' => true],
+                                        ];
+                                    @endphp
+                                    @foreach($activities as $activity)
+                                        @php $actLocked = $activity['guest_locked'] && !auth()->check(); @endphp
+                                        <div class="activity-option relative px-4 py-3 rounded-xl border border-gray-200 cursor-pointer transition-all duration-200 hover:border-primary/50 hover:bg-purple-50 hover:text-primary text-gray-600 bg-white text-center text-sm font-medium"
+                                             onclick="toggleActivity('{{ $activity['name'] }}')" 
+                                             data-activity="{{ $activity['name'] }}"
+                                             data-locked="{{ $actLocked ? 'true' : 'false' }}">
+                                            {{ $activity['name'] }}
+                                            @if($actLocked)
+                                            <svg class="inline-block ml-1 w-3 h-3 text-gray-400 align-middle" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                            @endif
+                                        </div>
                                     @endforeach
                                 </div>
                             </div>
@@ -253,8 +289,8 @@
     </div>
 
     <!-- Login Modal -->
-    <div id="loginModal" class="d-none fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all scale-100 animate__animated animate__fadeInUp">
+    <div id="loginModal" class="hidden" style="position:fixed; inset:0; z-index:99999; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate__animated animate__fadeInUp" style="position:relative; z-index:100000;">
             <div class="text-center">
                 <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,6 +307,97 @@
                     </a>
                     <button type="button" onclick="closeLoginModal()" class="w-full py-3 px-6 rounded-xl bg-white text-gray-700 font-bold hover:bg-gray-50 transition-colors border border-gray-200">
                         Maybe Later
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Upgrade Modal (shown when guests click Standard/Luxury) -->
+    <div id="budgetModal" class="hidden" style="position:fixed; inset:0; z-index:99999; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate__animated animate__fadeInUp" style="position:relative; z-index:100000;">
+            <div class="text-center">
+                <!-- Icon -->
+                <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background:linear-gradient(135deg,#7c3aed22,#a78bfa33)">
+                    <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Unlock Premium Plans 💎</h3>
+                <p class="text-gray-500 mb-2 text-sm">You're currently on the <span class="font-semibold text-purple-600">Economy</span> plan as a guest.</p>
+                <p class="text-gray-600 mb-6">Sign in to access <strong>Standard</strong> and <strong>Luxury</strong> budgets — and get personalized itineraries with premium hotels, fine dining, and exclusive experiences.</p>
+                <!-- Perks list -->
+                <ul class="text-left text-sm text-gray-600 mb-6 space-y-2">
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Standard &amp; Luxury budget itineraries</li>
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Save &amp; revisit your travel plans</li>
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Trips up to 10 days</li>
+                </ul>
+                <div class="flex flex-col gap-3">
+                    <a href="{{ route('loginRegister') }}" class="w-full py-3 px-6 rounded-xl text-white font-bold transition-colors" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">
+                        Sign In / Create Account
+                    </a>
+                    <button type="button" onclick="closeBudgetModal()" class="w-full py-3 px-6 rounded-xl bg-white text-gray-500 font-medium hover:bg-gray-50 transition-colors border border-gray-200">
+                        Continue with Economy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Companion Upgrade Modal (shown when guests click Couple/Family/Friends) -->
+    <div id="companionModal" class="hidden" style="position:fixed; inset:0; z-index:99999; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate__animated animate__fadeInUp" style="position:relative; z-index:100000;">
+            <div class="text-center">
+                <!-- Icon -->
+                <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background:linear-gradient(135deg,#0ea5e922,#38bdf833)">
+                    <svg class="w-8 h-8 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Plan for Your Group 👨‍👩‍👧‍👦</h3>
+                <p class="text-gray-500 mb-2 text-sm">You're planning as a <span class="font-semibold text-sky-500">Solo traveler</span> as a guest.</p>
+                <p class="text-gray-600 mb-6">Sign in to unlock group travel planning for <strong>Couples</strong>, <strong>Families</strong>, and <strong>Friends</strong> — with itineraries tailored to every group dynamic.</p>
+                <!-- Perks list -->
+                <ul class="text-left text-sm text-gray-600 mb-6 space-y-2">
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Customized plans for couples, families &amp; groups</li>
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Kid-friendly &amp; group activity suggestions</li>
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Save &amp; share plans with your travel companions</li>
+                </ul>
+                <div class="flex flex-col gap-3">
+                    <a href="{{ route('loginRegister') }}" class="w-full py-3 px-6 rounded-xl text-white font-bold transition-colors" style="background:linear-gradient(135deg,#0ea5e9,#38bdf8)">
+                        Sign In / Create Account
+                    </a>
+                    <button type="button" onclick="closeCompanionModal()" class="w-full py-3 px-6 rounded-xl bg-white text-gray-500 font-medium hover:bg-gray-50 transition-colors border border-gray-200">
+                        Continue as Solo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Upgrade Modal (shown when guests click locked activities) -->
+    <div id="activityModal" class="hidden" style="position:fixed; inset:0; z-index:99999; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate__animated animate__fadeInUp" style="position:relative; z-index:100000;">
+            <div class="text-center">
+                <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background:linear-gradient(135deg,#f59e0b22,#fbbf2433)">
+                    <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Unlock All Experiences ✨</h3>
+                <p class="text-gray-500 mb-2 text-sm">Guests can explore <span class="font-semibold text-amber-500">Beaches, City Sightseeing & Outdoor Adventures</span>.</p>
+                <p class="text-gray-600 mb-6">Sign in to unlock the full range of activities — from vibrant <strong>Nightlife</strong> to indulgent <strong>Spa Wellness</strong> and everything in between.</p>
+                <ul class="text-left text-sm text-gray-600 mb-6 space-y-2">
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>All 8 activity categories unlocked</li>
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Hyper-personalized itineraries by interest</li>
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Save and revisit your curated plans</li>
+                </ul>
+                <div class="flex flex-col gap-3">
+                    <a href="{{ route('loginRegister') }}" class="w-full py-3 px-6 rounded-xl text-white font-bold transition-colors" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)">
+                        Sign In / Create Account
+                    </a>
+                    <button type="button" onclick="closeActivityModal()" class="w-full py-3 px-6 rounded-xl bg-white text-gray-500 font-medium hover:bg-gray-50 transition-colors border border-gray-200">
+                        Continue with Free Activities
                     </button>
                 </div>
             </div>
@@ -315,29 +442,86 @@
         }
 
         function showLoginModal() {
-            document.getElementById('loginModal').classList.remove('d-none');
+            const modal = document.getElementById('loginModal');
+            // Move to document.body to escape all stacking contexts
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+            modal.style.display = 'flex';
         }
 
         function closeLoginModal() {
-            document.getElementById('loginModal').classList.add('d-none');
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        function showBudgetModal() {
+            const modal = document.getElementById('budgetModal');
+            if (modal.parentElement !== document.body) document.body.appendChild(modal);
+            modal.style.display = 'flex';
+        }
+
+        function closeBudgetModal() {
+            document.getElementById('budgetModal').style.display = 'none';
+        }
+
+        function showCompanionModal() {
+            const modal = document.getElementById('companionModal');
+            if (modal.parentElement !== document.body) document.body.appendChild(modal);
+            modal.style.display = 'flex';
+        }
+
+        function closeCompanionModal() {
+            document.getElementById('companionModal').style.display = 'none';
+        }
+
+        function showActivityModal() {
+            const modal = document.getElementById('activityModal');
+            if (modal.parentElement !== document.body) document.body.appendChild(modal);
+            modal.style.display = 'flex';
+        }
+
+        function closeActivityModal() {
+            document.getElementById('activityModal').style.display = 'none';
         }
 
         function setBudget(budget) {
+            // Block guests from selecting locked budget options
+            if (!isUserLoggedIn && budget !== 'low') {
+                showBudgetModal();
+                return;
+            }
+
             selectedBudget = budget;
             document.getElementById('budgetInput').value = budget;
-            
-            // Updates styles
+
+            // Update styles
             document.querySelectorAll('.budget-option').forEach(el => {
                 el.classList.remove('border-primary', 'bg-purple-50', 'ring-1', 'ring-primary');
                 el.querySelector('.check-mark').classList.remove('opacity-100');
             });
-            
+
             const activeEl = document.querySelector(`.budget-option[onclick="setBudget('${budget}')"]`);
-            activeEl.classList.add('border-primary', 'bg-purple-50', 'ring-1', 'ring-primary');
-            activeEl.querySelector('.check-mark').classList.add('opacity-100');
+            if (activeEl) {
+                activeEl.classList.add('border-primary', 'bg-purple-50', 'ring-1', 'ring-primary');
+                activeEl.querySelector('.check-mark').classList.add('opacity-100');
+            }
         }
 
+        // Auto-select Economy + Solo for guests on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!isUserLoggedIn) {
+                setBudget('low');
+                setCompanion('Solo');
+            }
+        });
+
         function setCompanion(companion) {
+            // Block guests from selecting locked companion options
+            if (!isUserLoggedIn && companion !== 'Solo') {
+                showCompanionModal();
+                return;
+            }
+
             selectedCompanion = companion;
             document.getElementById('companionInput').value = companion;
 
@@ -348,14 +532,22 @@
             });
 
             const activeEl = document.querySelector(`.companion-option[onclick="setCompanion('${companion}')"]`);
-            activeEl.classList.add('border-primary', 'bg-purple-50', 'ring-1', 'ring-primary');
-            activeEl.querySelector('div').classList.remove('bg-gray-100', 'text-gray-500');
-            activeEl.querySelector('div').classList.add('bg-primary', 'text-white');
+            if (activeEl) {
+                activeEl.classList.add('border-primary', 'bg-purple-50', 'ring-1', 'ring-primary');
+                activeEl.querySelector('div').classList.remove('bg-gray-100', 'text-gray-500');
+                activeEl.querySelector('div').classList.add('bg-primary', 'text-white');
+            }
         }
 
         function toggleActivity(activity) {
             const el = document.querySelector(`.activity-option[data-activity="${activity}"]`);
-            
+
+            // Block guests from selecting locked activities
+            if (!isUserLoggedIn && el && el.dataset.locked === 'true') {
+                showActivityModal();
+                return;
+            }
+
             if (selectedActivities.includes(activity)) {
                 selectedActivities = selectedActivities.filter(a => a !== activity);
                 el.classList.remove('border-primary', 'bg-primary', 'text-white');
