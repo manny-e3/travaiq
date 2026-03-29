@@ -100,7 +100,7 @@ Route::get('/api/place-image', function (Illuminate\Http\Request $request) {
     if (!$location) {
         return response()->json(['error' => 'Location required'], 400);
     }
-    
+     
     // Activity Management Routes - Moved outside
     
 
