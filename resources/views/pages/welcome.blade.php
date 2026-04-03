@@ -344,6 +344,9 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
+        // Wake up Node.js API (Render Free Tier)
+        fetch('{{ env('NODE_AI_SERVICE_URL') }}/').catch(() => {});
+
         function setupLocationSearch(inputId, suggestionsId) {
             let searchTimeout;
             const $locationInput = $(inputId);
@@ -372,7 +375,7 @@
                     .removeClass('d-none').addClass('show');
 
                 searchTimeout = setTimeout(() => {
-                    $.get('/api/location-suggestions', {
+                    $.get('{{ env('NODE_AI_SERVICE_URL') }}/api/search', {
                             term: searchTerm
                         })
                         .done(function(response) {

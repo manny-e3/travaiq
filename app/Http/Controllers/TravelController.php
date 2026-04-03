@@ -313,70 +313,73 @@ class TravelController extends Controller
 }
 
 
-    private function generateAndProcessTravelPlan($location, $totalDays, $traveler, $budget, $activities, $origin = null)
-    {
+private function generateAndProcessTravelPlan($location, $totalDays, $traveler, $budget, $activities, $origin = null)
+{
+    $maxAttempts = 3;
+    $attempt     = 0;
+    $lastException = null;
+
+    while ($attempt < $maxAttempts) {
         try {
-            $prompt = TravelPlanPrompt::generate($location, $totalDays, $traveler, $budget, $activities, $origin);
-            $apiKey = env('GOOGLE_GEN_AI_API_KEY');
-
-            if (empty($apiKey)) {
-                throw new TravelPlanException('AI service configuration error', [
-                    'service' => 'Gemini AI'
-                ]);
-            }
-            
-
-            $response = Http::timeout(60)
-                ->retry(3, 5000)
-                ->withHeaders(['Content-Type' => 'application/json'])
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey", [
-                    'contents' => [
-                        [
-                            'parts' => [
-                                ['text' => $prompt],
-                            ],
-                        ],
-                    ],
-                ]);
-
-            if (!$response->successful()) {
-                throw new TravelPlanException('Failed to generate travel plan from AI service', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
-                ]);
-            }
-
-            // Process AI response
-            $responseBody = $response->json();
-            $generatedText = $responseBody['candidates'][0]['content']['parts'][0]['text'];
-            $generatedText = preg_replace('/```json\s*|\s*```/', '', $generatedText);
-            $generatedText = trim($generatedText);
-
-            try {
-                $travelPlan = json_decode($generatedText, true, 512, JSON_THROW_ON_ERROR);
-            } catch (\JsonException $e) {
-                throw new TravelPlanException('Invalid AI response format', [
-                    'response' => $generatedText
-                ]); 
-            }
-
-            // Validate the travel plan
-            $this->validateTravelPlan($travelPlan, $totalDays);
-
-            return $travelPlan;
+            $attempt++;
+            return $this->callAiService($location, $totalDays, $traveler, $budget, $activities, $origin);
         } catch (Exception $e) {
-            Log::error('Error in generateAndProcessTravelPlan', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'location' => $location,
-                'totalDays' => $totalDays,
-                'traveler' => $traveler,
-                'budget' => $budget,
-                'activities' => $activities
-            ]);
-            throw $e;
+            $lastException = $e;
+            $isSslError    = str_contains($e->getMessage(), 'SSL') || str_contains($e->getMessage(), 'cURL error 56');
+
+            if (!$isSslError || $attempt >= $maxAttempts) {
+                throw $e;
+            }
+
+            Log::warning("SSL error on attempt {$attempt}, retrying...", ['error' => $e->getMessage()]);
+            sleep($attempt * 2); // 2s, 4s backoff
         }
     }
+
+    throw $lastException;
+}
+
+private function callAiService($location, $totalDays, $traveler, $budget, $activities, $origin)
+{
+    $nodeAiUrl = env('NODE_AI_SERVICE_URL');
+
+    $response = Http::timeout(120)
+        ->withOptions([
+            'curl' => [
+                CURLOPT_HTTP_VERSION  => CURL_HTTP_VERSION_1_1,
+                CURLOPT_FRESH_CONNECT => true,
+                CURLOPT_FORBID_REUSE  => true,
+            ],
+        ])
+        ->post("{$nodeAiUrl}/api/generate-plan", [
+            'location'   => $location,
+            'origin'     => $origin,
+            'duration'   => (int) $totalDays,
+            'traveler'   => $traveler,
+            'budget'     => $budget,
+            'activities' => is_string($activities) && str_starts_with($activities, '[') ? json_decode($activities, true) : $activities,
+        ]);
+
+    if (!$response->successful()) {
+        $errorBody = $response->json();
+        throw new TravelPlanException('Failed to generate travel plan from AI service', [
+            'status'  => $response->status(),
+            'error'   => $errorBody['error'] ?? $response->body(),
+            'details' => $errorBody['details'] ?? null,
+        ]);
+    }
+
+    $travelPlan = $response->json('plan');
+
+    if (!$travelPlan) {
+        throw new TravelPlanException('AI service returned an empty plan', [
+            'response' => $response->body()
+        ]);
+    }
+
+    return $travelPlan;
+}
+
 
     private function saveTravelPlanToDatabase($travelPlan, $tripDetail,  $checkInDate , $checkOutDate, $budget)
     {
