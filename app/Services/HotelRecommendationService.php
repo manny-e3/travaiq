@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Helpers\GooglePlacesHelper;
 use App\Http\Controllers\TravelPlanException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -18,14 +17,15 @@ class HotelRecommendationService
         $this->agodaPartnerId = env('AGODA_PARTNER_ID');
     }
 
-    public function getHotelRecommendations($location, $checkInDate , $checkOutDate , $budget = null)
+    public function getHotelRecommendations($location, $checkInDate , $checkOutDate , $budget = null, $cityId = null)
     {
         try {
             Log::info('Getting hotel recommendations from Node API', [
                 'location' => $location,
                 'checkInDate' => $checkInDate,
                 'checkOutDate' => $checkOutDate,
-                'budget' => $budget
+                'budget' => $budget,
+                'cityId' => $cityId
             ]);
 
             $nodeAiUrl = env('NODE_AI_SERVICE_URL');
@@ -34,7 +34,8 @@ class HotelRecommendationService
                 'location' => $location,
                 'checkIn' => $checkInDate,
                 'checkOut' => $checkOutDate,
-                'budget' => $budget
+                'budget' => $budget,
+                'cityId' => $cityId
             ]);
 
             $options = [

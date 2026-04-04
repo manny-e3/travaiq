@@ -106,13 +106,16 @@ Route::get('/api/place-image', function (Illuminate\Http\Request $request) {
 
     // Cache for 1 hour at the HTTP level if possible, but we are using internal cache in helper
     // We return JSON so frontend can consume it easily
-    $url = App\Helpers\GooglePlacesHelper::getPlacePhotoUrl($location);
+    $nodeAiUrl = env('NODE_AI_SERVICE_URL');
+    $response = Http::get("{$nodeAiUrl}/api/place-image", [
+        'location' => $location
+    ]);
     
-    if (str_starts_with($url, 'Error:')) {
-        return response()->json(['error' => $url], 404);
+    if ($response->failed()) {
+        return response()->json(['error' => 'Failed to fetch image from Node service'], $response->status());
     }
     
-    return response()->json(['url' => $url]);
+    return $response->json();
 })->name('api.place.image');
 
 // Activity Management Routes

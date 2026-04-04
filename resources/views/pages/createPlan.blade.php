@@ -98,6 +98,7 @@
                                             placeholder="Where do you want to go?"
                                             autocomplete="off"
                                             required>
+                                        <input type="hidden" id="city_id" name="city_id" value="">
                                         <div id="suggestions" class="absolute z-50 mt-1 w-full bg-white shadow-xl max-h-60 rounded-xl py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm d-none"></div>
                                     </div>
                                 </div>
@@ -651,7 +652,7 @@
                                 if (response && response.length > 0) {
                                     let suggestionsHtml = '';
                                     response.forEach(function(suggestion) {
-                                        suggestionsHtml += `<div class="suggestion-item" role="option">${suggestion.DisplayText}</div>`;
+                                        suggestionsHtml += `<div class="suggestion-item" role="option" data-city-id="${suggestion.Value || ''}">${suggestion.DisplayText}</div>`;
                                     });
                                     $suggestionsContainer.html(suggestionsHtml).removeClass('d-none').addClass('show');
                                 } else {
@@ -667,6 +668,11 @@
                 // Handle click on suggestion
                 $suggestionsContainer.on('click', '.suggestion-item', function() {
                     $locationInput.val($(this).text());
+                    // Capture the Agoda cityId if this is the destination input
+                    const cityId = $(this).data('city-id');
+                    if (cityId && inputId === '#location') {
+                        $('#city_id').val(cityId);
+                    }
                     $suggestionsContainer.removeClass('show').addClass('d-none');
                 });
 

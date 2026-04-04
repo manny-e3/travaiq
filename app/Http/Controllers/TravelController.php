@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Helpers\GooglePlacesHelper;
+use App\Http\Controllers\TravelPlanException;
 use App\Models\Activity;
 use App\Models\AdditionalInformation;
 use App\Models\Cost;
@@ -171,6 +171,7 @@ class TravelController extends Controller
             'budget' => 'required|string',
             'activities' => 'required|json',
             'travel' => 'required|date',
+            'city_id' => 'nullable|string',
         ]);
 
         $startDate = Carbon::parse($validated['travel']);
@@ -224,7 +225,14 @@ class TravelController extends Controller
                     $validated['origin'] ?? null
                 );
 
-                $locationOverview = $this->saveTravelPlanToDatabase($travelPlan, $tripDetail, $checkInDate, $checkOutDate, $validated['budget']);
+                $locationOverview = $this->saveTravelPlanToDatabase(
+                    $travelPlan, 
+                    $tripDetail, 
+                    $checkInDate, 
+                    $checkOutDate, 
+                    $validated['budget'],
+                    $validated['city_id'] ?? null
+                );
 
                 if (!$locationOverview || !isset($locationOverview->id)) {
                     throw new Exception('Failed to retrieve or create LocationOverview.');
@@ -290,6 +298,7 @@ class TravelController extends Controller
             'created_at'     => now(),
             'check_in_date'  => $checkInDate,
             'check_out_date' => $checkOutDate,
+            'city_id'        => $validated['city_id'] ?? null,
         ];
 
         session(['temp_travel_plan' => $tempPlanData]);
@@ -381,7 +390,7 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
 }
 
 
-    private function saveTravelPlanToDatabase($travelPlan, $tripDetail,  $checkInDate , $checkOutDate, $budget)
+    private function saveTravelPlanToDatabase($travelPlan, $tripDetail,  $checkInDate , $checkOutDate, $budget, $cityId = null)
     {
         // Step 5: Create location overview and related data
         $locationOverview = LocationOverview::create([
@@ -405,7 +414,7 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
 
         // Get Agoda hotel recommendations
         $agodaHotels = $this->hotelRecommendationService->getHotelRecommendations(
-            $tripDetail->location, $checkInDate, $checkOutDate, $budget
+            $tripDetail->location, $checkInDate, $checkOutDate, $budget, $cityId
         );
         if (!empty($agodaHotels)) {
             foreach ($agodaHotels as $hotel) {
@@ -619,10 +628,28 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
         }
     }
 
+    private function getGooglePlaceImageFromNode($location)
+    {
+        $nodeAiUrl = env('NODE_AI_SERVICE_URL');
+        try {
+            $response = Http::timeout(10)->get("{$nodeAiUrl}/api/place-image", [
+                'location' => $location
+            ]);
+            
+            if ($response->successful()) {
+                return $response->json('url');
+            }
+        } catch (Exception $e) {
+            Log::warning("Failed to fetch image from Node service for {$location}: " . $e->getMessage());
+        }
+        
+        return null;
+    }
+
     private function updateGooglePlaceImage($tripDetail, $location)
     {
-        $google_place_image = GooglePlacesHelper::getPlacePhotoUrl($location);
-        if (!str_starts_with($google_place_image, 'Error:')) {
+        $google_place_image = $this->getGooglePlaceImageFromNode($location);
+        if ($google_place_image) {
             $tripDetail->update(['google_place_image' => $google_place_image]);
         }
     }
@@ -639,8 +666,8 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
 
         // Get Google Places image for the location if not already set
         if (!$tripDetails->google_place_image) {
-            $google_place_image = GooglePlacesHelper::getPlacePhotoUrl($tripDetails->location);
-            if (!str_starts_with($google_place_image, 'Error:')) {
+            $google_place_image = $this->getGooglePlaceImageFromNode($tripDetails->location);
+            if ($google_place_image) {
                 $tripDetails->update(['google_place_image' => $google_place_image]);
             }
         }
@@ -767,8 +794,8 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
         foreach ($hotels as $hotel) {
             if (!empty($hotel->name)) {
                 try {
-                    $imageUrl = GooglePlacesHelper::getPlacePhotoUrl($hotel->name);
-                    if (!str_starts_with($imageUrl, 'Error:')) {
+                    $imageUrl = $this->getGooglePlaceImageFromNode($hotel->name);
+                    if ($imageUrl) {
                         $hotel->update(['image_url' => $imageUrl]);
                     }
                 } catch (Exception $e) {
@@ -1046,10 +1073,7 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
             // Fetch image if not provided
             $imageUrl = null;
             try {
-                $imageUrl = GooglePlacesHelper::getPlacePhotoUrl($validated['name']);
-                if (str_starts_with($imageUrl, 'Error:')) {
-                    $imageUrl = null;
-                }
+                $imageUrl = $this->getGooglePlaceImageFromNode($validated['name']);
             } catch (Exception $e) {
                 Log::warning('Failed to fetch image for new activity', ['error' => $e->getMessage()]);
             }
@@ -1142,37 +1166,19 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
         }
 
         // Get hotels from Agoda with check-in and check-out dates
+        $cityId = $tempPlan['city_id'] ?? null;
+        
         $agodaHotels = $this->hotelRecommendationService->getHotelRecommendations(
             $tempPlan['location'], 
             $checkInDate, 
             $checkOutDate, 
-            $tempPlan['budget']
+            $tempPlan['budget'],
+            $cityId
         );
         
-        // Get city ID for Agoda link
-        $cityId = null;
-        try {
-            $suggestionResponse = Http::timeout(10)
-                ->withHeaders([
-                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0.4472.124 Safari/537.36',
-                    'Accept' => 'application/json',
-                ])->get('https://partners.agoda.com/HotelSuggest/GetSuggestions', [
-                    'type' => 1,
-                    'limit' => 10,
-                    'term' => $tempPlan['location'],
-                ]);
-
-            if ($suggestionResponse->successful()) {
-                $suggestions = $suggestionResponse->json();
-                if (!empty($suggestions) && is_array($suggestions)) {
-                    $cityId = $suggestions[0]['Value'] ?? null;
-                }
-            }
-        } catch (Exception $e) {
-            Log::warning('Failed to get city ID for Agoda link', [
-                'location' => $tempPlan['location'],
-                'error' => $e->getMessage()
-            ]);
+        // Redundant cityId lookup removed as we now get it from frontend suggestions or passed city_id
+        if (!$cityId) {
+            Log::info('No cityId available for Agoda recommendations');
         }
         
         Log::info('Agoda hotel recommendations result', [
