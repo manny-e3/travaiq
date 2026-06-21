@@ -70,9 +70,9 @@ class GoogleController extends Controller
 
             // Create location overview
             $locationOverview = LocationOverview::create([
-                'history_and_culture' => $tempPlan['plan']['location_overview']['history_and_culture'],
-                'local_customs_and_traditions' => $tempPlan['plan']['location_overview']['local_customs_and_traditions'],
-                'geographic_features_and_climate' => $tempPlan['plan']['location_overview']['geographic_features_and_climate'],
+                'history_and_culture' => data_get($tempPlan, 'plan.location_overview.history_and_culture', 'History and culture details not available.'),
+                'local_customs_and_traditions' => data_get($tempPlan, 'plan.location_overview.local_customs_and_traditions', 'Local customs and traditions details not available.'),
+                'geographic_features_and_climate' => data_get($tempPlan, 'plan.location_overview.geographic_features_and_climate', 'Geographic features and climate details not available.'),
             ]);
 
             Log::info('Created location overview', ['location_overview_id' => $locationOverview->id]);
@@ -80,40 +80,51 @@ class GoogleController extends Controller
             // Create security advice
             $securityAdvice = SecurityAdvice::create([
                 'location_overview_id' => $locationOverview->id,
-                'overall_safety_rating' => $tempPlan['plan']['location_overview']['security_advice']['overall_safety_rating'],
-                'emergency_numbers' => $tempPlan['plan']['location_overview']['security_advice']['emergency_numbers'],
-                'areas_to_avoid' => $tempPlan['plan']['location_overview']['security_advice']['areas_to_avoid'],
-                'common_scams' => $tempPlan['plan']['location_overview']['security_advice']['common_scams'],
-                'safety_tips' => $tempPlan['plan']['location_overview']['security_advice']['safety_tips'],
-                'health_precautions' => $tempPlan['plan']['location_overview']['security_advice']['health_precautions'],
+                'overall_safety_rating' => data_get($tempPlan, 'plan.location_overview.security_advice.overall_safety_rating'),
+                'emergency_numbers' => data_get($tempPlan, 'plan.location_overview.security_advice.emergency_numbers'),
+                'areas_to_avoid' => data_get($tempPlan, 'plan.location_overview.security_advice.areas_to_avoid'),
+                'common_scams' => data_get($tempPlan, 'plan.location_overview.security_advice.common_scams'),
+                'safety_tips' => data_get($tempPlan, 'plan.location_overview.security_advice.safety_tips', []),
+                'health_precautions' => data_get($tempPlan, 'plan.location_overview.security_advice.health_precautions'),
             ]);
 
             Log::info('Created security advice', ['security_advice_id' => $securityAdvice->id]);
 
-            
-
-
-
-            foreach ($tempPlan['plan']['agoda_hotels'] as $hotelData) {
+            foreach (data_get($tempPlan, 'plan.agoda_hotels', []) as $hotelData) {
                 HotelRecommendation::create([
                     'location_overview_id' => $locationOverview->id,
                     'name' => $hotelData['name'],
-                    'description' => $hotelData['description'],
-                    'address' => $hotelData['address'],
-                    'rating' => $hotelData['rating'],
-                    'price' => $hotelData['price'],
-                    'currency' => $hotelData['currency'],
-                    'image_url' => $hotelData['image_url'],
-                    'amenities' => json_encode($hotelData['amenities']),
-                    'location' => json_encode($hotelData['location']),
-                    'review_score' => $hotelData['review_score'],
-                    'review_count' => $hotelData['review_count'],
-                    'booking_url' => $hotelData['booking_url'],
+                    'description' => $hotelData['description'] ?? '',
+                    'address' => $hotelData['address'] ?? '',
+                    'rating' => $hotelData['rating'] ?? 0,
+                    'price' => $hotelData['price'] ?? 0,
+                    'currency' => $hotelData['currency'] ?? 'USD',
+                    'image_url' => $hotelData['image_url'] ?? null,
+                    'amenities' => json_encode($hotelData['amenities'] ?? []),
+                    'location' => json_encode($hotelData['location'] ?? []),
+                    'review_score' => $hotelData['review_score'] ?? null,
+                    'review_count' => $hotelData['review_count'] ?? 0,
+                    'booking_url' => $hotelData['booking_url'] ?? '#',
                 ]);
             }
 
             // Create itineraries and activities
-            foreach ($tempPlan['plan']['itinerary'] as $dayPlan) {
+            $castString = function ($val) {
+                if (is_null($val)) return '';
+                if (is_array($val) || is_object($val)) {
+                    $valArr = (array) $val;
+                    if (isset($valArr['latitude']) && isset($valArr['longitude'])) {
+                        return $valArr['latitude'] . ', ' . $valArr['longitude'];
+                    }
+                    if (is_array($val) && count($val) === 2 && is_numeric($val[0]) && is_numeric($val[1])) {
+                        return $val[0] . ', ' . $val[1];
+                    }
+                    return json_encode($val);
+                }
+                return (string)$val;
+            };
+
+            foreach (data_get($tempPlan, 'plan.itinerary', []) as $dayPlan) {
                 $itinerary = Itinerary::create([
                     'day' => $dayPlan['day'],
                     'location_overview_id' => $locationOverview->id,
@@ -121,18 +132,28 @@ class GoogleController extends Controller
 
                 Log::info('Created itinerary', ['itinerary_id' => $itinerary->id, 'day' => $dayPlan['day']]);
 
-                foreach ($dayPlan['activities'] as $activityData) {
-                    $activityData['itinerary_id'] = $itinerary->id;
-                    $activityData['location_overview_id'] = $locationOverview->id;
-                    $activity = Activity::create($activityData);
+                foreach (data_get($dayPlan, 'activities', []) as $activityData) {
+                    $activity = Activity::create([
+                        'itinerary_id' => $itinerary->id,
+                        'location_overview_id' => $locationOverview->id,
+                        'name' => $castString(data_get($activityData, 'name', '')),
+                        'description' => $castString(data_get($activityData, 'description', '')),
+                        'coordinates' => $castString(data_get($activityData, 'coordinates', '')),
+                        'address' => $castString(data_get($activityData, 'address', '')),
+                        'cost' => $castString(data_get($activityData, 'cost', '')),
+                        'duration' => $castString(data_get($activityData, 'duration', '')),
+                        'best_time' => $castString(data_get($activityData, 'best_time', '')),
+                        'phone_number' => $castString(data_get($activityData, 'phone_number', '')),
+                        'website' => $castString(data_get($activityData, 'website', '')),
+                        'fee' => $castString(data_get($activityData, 'fee', '')),
+                        'image_url' => data_get($activityData, 'image_url') ?: null,
+                    ]);
                     Log::info('Created activity', ['activity_id' => $activity->id, 'name' => $activity->name]);
                 }
             }
 
-            
-
             // Create costs
-            foreach ($tempPlan['plan']['costs'] as $costData) {
+            foreach (data_get($tempPlan, 'plan.costs', []) as $costData) {
                 $cost = Cost::create([
                     'location_overview_id' => $locationOverview->id,
                     'currency' => $costData['currency'] ?? 'USD', // Default to USD if not specified
@@ -174,11 +195,11 @@ class GoogleController extends Controller
             // Create additional information
             $additionalInfo = AdditionalInformation::create([
                 'location_overview_id' => $locationOverview->id,
-                'local_currency' => $tempPlan['plan']['additional_information']['local_currency'],
-                'timezone' => $tempPlan['plan']['additional_information']['timezone'],
-                'weather_forecast' => $tempPlan['plan']['additional_information']['weather_forecast'],
-                'transportation_options' => $tempPlan['plan']['additional_information']['transportation_options'],
-                'exchange_rate' => $tempPlan['plan']['additional_information']['exchange_rate'] ?? 1.0, // Default to 1.0 if not specified
+                'local_currency' => data_get($tempPlan, 'plan.additional_information.local_currency', 'N/A'),
+                'timezone' => data_get($tempPlan, 'plan.additional_information.timezone', 'UTC'),
+                'weather_forecast' => data_get($tempPlan, 'plan.additional_information.weather_forecast', 'N/A'),
+                'transportation_options' => data_get($tempPlan, 'plan.additional_information.transportation_options', 'N/A'),
+                'exchange_rate' => data_get($tempPlan, 'plan.additional_information.exchange_rate', 1.0), // Default to 1.0 if not specified
             ]);
 
             Log::info('Created additional information', ['additional_info_id' => $additionalInfo->id]);

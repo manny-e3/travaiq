@@ -135,20 +135,10 @@
                                 </button>
                             </h3>
 
-                            <div class="space-y-6">
+                             <div class="space-y-4">
                                 @foreach ($itinerary->activities as $activity)
-                                <div class="flex flex-col sm:flex-row gap-6">
-                                    <div class="flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 relative group-hover:shadow-md transition-all" style="width: 18rem !important; height: 12rem !important;">
-                                        @if ($activity->image_url)
-                                            <img src="{{ $activity->image_url }}" alt="{{ $activity->name }}" class="w-full h-full object-cover">
-                                        @else
-                                            <img data-location="{{ $activity->name }}" src="https://img.freepik.com/premium-photo/high-angle-view-smart-phone-table_1048944-29197645.jpg?w=900" alt="{{ $activity->name }}" class="w-full h-full object-cover grayscale opacity-60 lazy-image transition-all duration-700">
-                                            <div class="absolute inset-0 flex items-center justify-center bg-gray-100/50 loading-spinner">
-                                                <div class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <div class="flex-1 min-w-0">
+                                <div class="py-4 border-b border-gray-100 last:border-0">
+                                    <div class="min-w-0">
                                         <div class="flex justify-between items-start">
                                             <div>
                                                 <h4 class="font-bold text-gray-900 break-words pr-4">{{ $activity->name }}</h4>

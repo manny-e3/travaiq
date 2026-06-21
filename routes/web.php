@@ -18,7 +18,6 @@ Route::get('/clear-cache', function () {
     Artisan::call('view:clear');
     Artisan::call('optimize:clear');
     return "Cache cleared successfully!";
-    return "Cache cleared successfully!";
 });
 
 Route::get('/', [HomeController::class, 'index'])->name('home');

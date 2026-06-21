@@ -174,6 +174,11 @@ class TravelController extends Controller
             'city_id' => 'nullable|string',
         ]);
 
+        // Resolve city_id if missing from input (e.g. prefilled link access)
+        if (empty($validated['city_id'])) {
+            $validated['city_id'] = $this->resolveCityId($validated['location']);
+        }
+
         $startDate = Carbon::parse($validated['travel']);
         $duration = (int) $validated['duration'];
         $endDate = $startDate->copy()->addDays($duration);
@@ -394,9 +399,9 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
     {
         // Step 5: Create location overview and related data
         $locationOverview = LocationOverview::create([
-            'history_and_culture' => $travelPlan['location_overview']['history_and_culture'],
-            'local_customs_and_traditions' => $travelPlan['location_overview']['local_customs_and_traditions'],
-            'geographic_features_and_climate' => $travelPlan['location_overview']['geographic_features_and_climate'],
+            'history_and_culture' => data_get($travelPlan, 'location_overview.history_and_culture', 'History and culture details not available.'),
+            'local_customs_and_traditions' => data_get($travelPlan, 'location_overview.local_customs_and_traditions', 'Local customs and traditions details not available.'),
+            'geographic_features_and_climate' => data_get($travelPlan, 'location_overview.geographic_features_and_climate', 'Geographic features and climate details not available.'),
         ]);
         if (!$locationOverview) {
             throw new Exception('Failed to create LocationOverview');
@@ -497,7 +502,7 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
 
     private function createCulturalHighlights($locationOverview, $travelPlan)
     {
-        $highlights = collect($travelPlan['location_overview']['cultural_highlights'])
+        $highlights = collect(data_get($travelPlan, 'location_overview.cultural_highlights', []))
             ->map(function ($highlight) use ($locationOverview) {
                 if (!$locationOverview) {
                     throw new Exception('LocationOverview is null in createCulturalHighlights');
@@ -511,8 +516,31 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
         }
     }
 
+
+
     private function createItinerary($locationOverview, $travelPlan)
     {
+        $castString = function ($val) {
+            if (is_null($val)) return '';
+            if (is_array($val) || is_object($val)) {
+                $valArr = (array) $val;
+                if (isset($valArr['latitude']) && isset($valArr['longitude'])) {
+                    return $valArr['latitude'] . ', ' . $valArr['longitude'];
+                }
+                if (isset($valArr['lat']) && isset($valArr['lng'])) {
+                    return $valArr['lat'] . ', ' . $valArr['lng'];
+                }
+                if (isset($valArr['lat']) && isset($valArr['lon'])) {
+                    return $valArr['lat'] . ', ' . $valArr['lon'];
+                }
+                if (isset($valArr[0]) && isset($valArr[1]) && is_numeric($valArr[0]) && is_numeric($valArr[1])) {
+                    return $valArr[0] . ', ' . $valArr[1];
+                }
+                return json_encode($val);
+            }
+            return (string)$val;
+        };
+
         foreach ($travelPlan['itinerary'] as $dayPlan) {
             $itinerary = Itinerary::create([
                 'day' => $dayPlan['day'],
@@ -520,23 +548,23 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
             ]);
     
             $activities = collect($dayPlan['activities'])
-                ->map(function ($activityData) use ($itinerary, $locationOverview) {
+                ->map(function ($activityData) use ($itinerary, $locationOverview, $castString) {
                     // Image URL will be fetched by frontend or processed in background
                     $imageUrl = null;
 
                     return [
                         'itinerary_id' => $itinerary->id,
                         'location_overview_id' => $locationOverview->id,
-                        'name' => $activityData['name'] ?? '',
-                        'description' => $activityData['description'] ?? '',
-                        'coordinates' => $activityData['coordinates'] ?? '',
-                        'address' => $activityData['address'] ?? '',
-                        'cost' => $activityData['cost'] ?? '',
-                        'duration' => $activityData['duration'] ?? '',
-                        'best_time' => $activityData['best_time'] ?? '',
-                        'phone_number' => $activityData['phone_number'] ?? '',
-                        'website' => $activityData['website'] ?? '',
-                        'fee' => $activityData['fee'] ?? '',
+                        'name' => $castString($activityData['name'] ?? ''),
+                        'description' => $castString($activityData['description'] ?? ''),
+                        'coordinates' => $castString($activityData['coordinates'] ?? ''),
+                        'address' => $castString($activityData['address'] ?? ''),
+                        'cost' => $castString($activityData['cost'] ?? ''),
+                        'duration' => $castString($activityData['duration'] ?? ''),
+                        'best_time' => $castString($activityData['best_time'] ?? ''),
+                        'phone_number' => $castString($activityData['phone_number'] ?? ''),
+                        'website' => $castString($activityData['website'] ?? ''),
+                        'fee' => $castString($activityData['fee'] ?? ''),
                         'image_url' => $imageUrl
                     ];
                 })->toArray();
@@ -582,7 +610,7 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
 
     private function createAdditionalInfo($locationOverview, $travelPlan)
     {
-        $additionalInfoData = $travelPlan['additional_information'];
+        $additionalInfoData = data_get($travelPlan, 'additional_information', []);
         $additionalInfoData['location_overview_id'] = $locationOverview->id;
         $additionalInfo = AdditionalInformation::create($additionalInfoData);
         if (!$additionalInfo) {
@@ -1269,5 +1297,38 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
             'flightRecommendation',
             'cityId'
         ));
+    }
+
+    private function resolveCityId($location)
+    {
+        Log::info('Resolving city ID for location on backend', ['location' => $location]);
+        
+        try {
+            // Call Agoda suggestions directly (most reliable)
+            $response = Http::timeout(5)
+                ->withHeaders([
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0.4472.124 Safari/537.36',
+                    'Accept' => 'application/json',
+                ])->get('https://partners.agoda.com/HotelSuggest/GetSuggestions', [
+                    'type' => 1,
+                    'limit' => 5,
+                    'term' => $location,
+                ]);
+
+            if ($response->successful()) {
+                $suggestions = $response->json();
+                if (!empty($suggestions) && is_array($suggestions)) {
+                    $resolvedId = $suggestions[0]['Value'] ?? null;
+                    if ($resolvedId) {
+                        Log::info('Resolved city ID from Agoda directly', ['location' => $location, 'cityId' => $resolvedId]);
+                        return (string) $resolvedId;
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning('Failed to resolve city ID from Agoda on backend: ' . $e->getMessage());
+        }
+        
+        return null;
     }
 }

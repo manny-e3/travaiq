@@ -47,7 +47,7 @@
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div class="p-4 bg-gray-50 rounded-xl space-y-1">
                         <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Currency</span>
-                        <p class="font-bold text-gray-800">{{ $additionalInfo->local_currency ?? 'N/A' }}</p>
+                        <p class="font-bold text-gray-800">{{ $additionalInfo->local_currency ?? $additionalInfo->local_currency_code ?? 'N/A' }}</p>
                     </div>
                     <div class="p-4 bg-gray-50 rounded-xl space-y-1">
                         <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Timezone</span>
@@ -124,28 +124,12 @@
                         
                     </h3>
 
-                    <div class="space-y-6">
+                    <div class="space-y-4">
                         @foreach ($itinerary->activities as $activity)
 
-                            <div class="flex flex-col sm:flex-row gap-6">
+                            <div class="py-4 border-b border-gray-100 last:border-0">
 
-                                <div
-                                    class="flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 relative group-hover:shadow-md transition-all"
-                                    style="width: 18rem !important; height: 12rem !important;">
-                                    <img
-                                        data-location="{{ $activity->name }}"
-                                        src="https://img.freepik.com/premium-photo/high-angle-view-smart-phone-table_1048944-29197645.jpg?w=900"
-                                        alt="{{ $activity->name }}"
-                                        class="w-full h-full object-cover grayscale opacity-60 lazy-image transition-all duration-700">
-
-                                    <div
-                                        class="absolute inset-0 flex items-center justify-center bg-gray-100/50 loading-spinner">
-                                        <div
-                                            class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                    </div>
-                                </div>
-
-                                <div class="flex-1 min-w-0">
+                                <div class="min-w-0">
 
                                     <!-- FIXED ROW -->
                                     <div class="flex items-start gap-2">
@@ -447,9 +431,9 @@
                                 <h4 class="font-semibold text-gray-800 text-sm">Transportation</h4>
                             </div>
                             <div class="space-y-2 ml-8">
-                                @if(isset($additionalInfo->transportation_options))
+                                @if(isset($cost->transportation))
                                     <div class="mb-2">
-                                        <p class="text-xs text-gray-600 leading-relaxed">{{ Str::limit(is_array($additionalInfo->transportation_options) ? implode(', ', $additionalInfo->transportation_options) : $additionalInfo->transportation_options, 100) }}</p>
+                                        <p class="text-xs text-gray-600 leading-relaxed">{{ Str::limit(is_array($cost->transportation) ? implode(', ', $cost->transportation) : $cost->transportation, 100) }}</p>
                                     </div>
                                 @endif
                                 

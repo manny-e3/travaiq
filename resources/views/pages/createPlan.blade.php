@@ -98,7 +98,7 @@
                                             placeholder="Where do you want to go?"
                                             autocomplete="off"
                                             required>
-                                        <input type="hidden" id="city_id" name="city_id" value="">
+                                        <input type="hidden" id="city_id" name="city_id" value="{{ request('city_id', '') }}">
                                         <div id="suggestions" class="absolute z-50 mt-1 w-full bg-white shadow-xl max-h-60 rounded-xl py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm d-none"></div>
                                     </div>
                                 </div>
@@ -617,6 +617,21 @@
             // Wake up Node.js API (Render Free Tier)
             fetch('{{ env('NODE_AI_SERVICE_URL') }}/').catch(() => {});
 
+            // Auto-resolve city_id if destination is prefilled from query parameters on page load
+            const initialLocation = $('#location').val();
+            if (initialLocation && initialLocation.trim().length >= 2 && !$('#city_id').val()) {
+                $.get('{{ env('NODE_AI_SERVICE_URL') }}/api/search', { term: initialLocation.trim() })
+                    .done(function(response) {
+                        if (response && response.length > 0) {
+                            const firstCityId = response[0].Value;
+                            if (firstCityId) {
+                                $('#city_id').val(firstCityId);
+                                console.log('Resolved initial city_id on load:', firstCityId);
+                            }
+                        }
+                    });
+            }
+
             function setupLocationSearch(inputId, suggestionsId) {
                 let searchTimeout;
                 const $locationInput = $(inputId);
@@ -626,6 +641,10 @@
                     const searchTerm = $(this).val().trim();
 
                     clearTimeout(searchTimeout);
+
+                    if (inputId === '#location') {
+                        $('#city_id').val('');
+                    }
 
                     if (searchTerm.length < 2) {
                         $suggestionsContainer.removeClass('show').addClass('d-none');

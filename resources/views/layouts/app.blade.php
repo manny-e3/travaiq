@@ -3,49 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Title Tag (max ~60 characters) -->
-    <title>@yield('title', 'Travaiq - AI-Powered Travel Planning')</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <!-- Meta Description (max ~160 characters) -->
-    <meta name="description" content="Get in touch with Travaiq for travel inquiries, partnership opportunities, and support. We're here to help plan your next adventure.">
+    <!-- Title -->
+    <title>@yield('title', 'TravaiQ — AI-Powered Travel Planning')</title>
+
+    <!-- Meta Description -->
+    <meta name="description" content="@yield('meta_description', 'Plan your dream trip with AI. TravaIQ creates personalized day-by-day itineraries with real hotel recommendations, hidden gems, and local experiences — for free.')">
 
     <!-- Canonical URL -->
-    <link rel="canonical" href="https://www.travaiq.com/contact" />
+    <link rel="canonical" href="@yield('canonical', url()->current())" />
 
-    <!-- Open Graph Tags (for better social sharing) -->
-    <meta property="og:title" content="Contact Us - Travaiq" />
-    <meta property="og:description" content="Have questions? Contact Travaiq for travel support, partnerships, and more." />
-    <meta property="og:image" content="https://www.travaiq.com/images/contact-banner.jpg" />
-    <meta property="og:url" content="https://www.travaiq.com/contact" />
+    <!-- Open Graph -->
+    <meta property="og:title" content="@yield('og_title', 'TravaiQ — AI-Powered Travel Planning')" />
+    <meta property="og:description" content="@yield('og_description', 'Create personalized travel itineraries in seconds. Real hotels, hidden gems, and local experiences — powered by AI.')" />
+    <meta property="og:image" content="@yield('og_image', asset('travaiqlogo.png'))" />
+    <meta property="og:url" content="{{ url()->current() }}" />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TravaiQ" />
 
-    <!-- Twitter Card Tags -->
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Contact Us - Travaiq" />
-    <meta name="twitter:description" content="Reach out to Travaiq for travel help, partnerships, and questions." />
-    <meta name="twitter:image" content="https://www.travaiq.com/images/contact-banner.jpg" />
+    <meta name="twitter:title" content="@yield('og_title', 'TravaiQ — AI-Powered Travel Planning')" />
+    <meta name="twitter:description" content="@yield('og_description', 'Create personalized travel itineraries in seconds with AI.')" />
+    <meta name="twitter:image" content="@yield('og_image', asset('travaiqlogo.png'))" />
 
     <!-- Favicon -->
-    <link rel="icon" href="{{ asset('travaiqlogo.png') }}" type="image/x-icon" />
+    <link rel="icon" href="{{ asset('travaiqlogo.png') }}" type="image/png" />
+    <link rel="apple-touch-icon" href="{{ asset('travaiqlogo.png') }}" />
 
-    <!-- Robots tag (ensure page is indexable) -->
+    <!-- Robots -->
     <meta name="robots" content="index, follow" />
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#7c3aed" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Animate.css -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- Alpine.js -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
     <!-- Vite Assets -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Page-specific styles -->
+    @yield('styles')
 </head>
-<body class="font-sans text-gray-800 bg-gray-50 overflow-x-hidden flex flex-col min-h-screen">
-    <!-- Background Elements -->
-    <div class="fixed top-1/4 -left-32 w-64 h-64 bg-primary rounded-full opacity-10 blur-3xl pointer-events-none"></div>
-    <div class="fixed bottom-1/4 -right-32 w-64 h-64 bg-accent rounded-full opacity-10 blur-3xl pointer-events-none"></div>
+<body class="font-sans text-gray-800 bg-white overflow-x-hidden flex flex-col min-h-screen antialiased">
+    <!-- Background Decorative Elements -->
+    <div class="fixed top-1/4 -left-32 w-64 h-64 bg-primary rounded-full opacity-[0.04] blur-3xl pointer-events-none"></div>
+    <div class="fixed bottom-1/4 -right-32 w-64 h-64 bg-accent rounded-full opacity-[0.04] blur-3xl pointer-events-none"></div>
     
     @include('layouts.public-header')
 
@@ -55,18 +65,16 @@
 
     @include('layouts.public-footer')
 
-    <!-- Google tag (gtag.js) -->
+    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-KBCRTSETD9"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-    
       gtag('config', 'G-KBCRTSETD9');
     </script>
 
-    <script
-        src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initAutocomplete"
-        async defer></script>
+    <!-- Google Maps (only load on pages that need it) -->
+    @yield('scripts')
 </body>
 </html>       
