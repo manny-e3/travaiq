@@ -658,19 +658,6 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
 
     private function getGooglePlaceImageFromNode($location)
     {
-        $nodeAiUrl = env('NODE_AI_SERVICE_URL');
-        try {
-            $response = Http::timeout(10)->get("{$nodeAiUrl}/api/place-image", [
-                'location' => $location
-            ]);
-            
-            if ($response->successful()) {
-                return $response->json('url');
-            }
-        } catch (Exception $e) {
-            Log::warning("Failed to fetch image from Node service for {$location}: " . $e->getMessage());
-        }
-        
         return null;
     }
 

@@ -95,26 +95,7 @@ Route::get('/test-hotel-integration', [TravelController::class, 'testHotelIntegr
 Route::get('/location-search', [SearchController::class, 'showSearchForm'])->name('location.search');
 Route::get('/api/location-suggestions', [SearchController::class, 'search'])->name('location.suggestions');
 Route::get('/api/place-image', function (Illuminate\Http\Request $request) {
-    $location = $request->query('location');
-    if (!$location) {
-        return response()->json(['error' => 'Location required'], 400);
-    }
-     
-    // Activity Management Routes - Moved outside
-    
-
-    // Cache for 1 hour at the HTTP level if possible, but we are using internal cache in helper
-    // We return JSON so frontend can consume it easily
-    $nodeAiUrl = env('NODE_AI_SERVICE_URL');
-    $response = Http::get("{$nodeAiUrl}/api/place-image", [
-        'location' => $location
-    ]);
-    
-    if ($response->failed()) {
-        return response()->json(['error' => 'Failed to fetch image from Node service'], $response->status());
-    }
-    
-    return $response->json();
+    return response()->json(['url' => null]);
 })->name('api.place.image');
 
 // Activity Management Routes
