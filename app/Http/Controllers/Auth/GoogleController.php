@@ -116,8 +116,14 @@ class GoogleController extends Controller
                     if (isset($valArr['latitude']) && isset($valArr['longitude'])) {
                         return $valArr['latitude'] . ', ' . $valArr['longitude'];
                     }
-                    if (is_array($val) && count($val) === 2 && is_numeric($val[0]) && is_numeric($val[1])) {
-                        return $val[0] . ', ' . $val[1];
+                    if (isset($valArr['lat']) && isset($valArr['lng'])) {
+                        return $valArr['lat'] . ', ' . $valArr['lng'];
+                    }
+                    if (isset($valArr['lat']) && isset($valArr['lon'])) {
+                        return $valArr['lat'] . ', ' . $valArr['lon'];
+                    }
+                    if (isset($valArr[0]) && isset($valArr[1]) && is_numeric($valArr[0]) && is_numeric($valArr[1])) {
+                        return $valArr[0] . ', ' . $valArr[1];
                     }
                     return json_encode($val);
                 }
