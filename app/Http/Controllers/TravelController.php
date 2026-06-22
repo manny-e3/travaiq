@@ -214,6 +214,8 @@ class TravelController extends Controller
                     'budget' => $validated['budget'],
                     'activities' => $activities,
                     'user_id' => Auth::id(),
+                    'checkInDate' => $checkInDate,
+                    'checkOutDate' => $checkOutDate,
                 ]);
                 if (!$tripDetail) {
                     throw new Exception('Failed to create TripDetail');
@@ -584,14 +586,14 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
                 throw new Exception('Failed to create Cost');
             }
 
-            $transportationCosts = collect($costData['transportation'])
+            $transportationCosts = collect($costData['transportation'] ?? [])
                 ->map(function ($transportData) use ($cost, $locationOverview) {
                     $transportData['cost_id'] = $cost->id;
                     $transportData['location_overview_id'] = $locationOverview->id;
                     return $transportData;
                 })->toArray();
 
-            $diningCosts = collect($costData['dining'])
+            $diningCosts = collect($costData['dining'] ?? [])
                 ->map(function ($diningData) use ($cost, $locationOverview) {
                     $diningData['cost_id'] = $cost->id;
                     $diningData['location_overview_id'] = $locationOverview->id;
@@ -612,11 +614,23 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
     {
         $additionalInfoData = data_get($travelPlan, 'additional_information', []);
         $additionalInfoData['location_overview_id'] = $locationOverview->id;
+        $additionalInfoData['local_currency'] = $additionalInfoData['local_currency'] ?? 'USD';
+        $additionalInfoData['exchange_rate'] = $additionalInfoData['exchange_rate'] ?? '1.0';
+        $additionalInfoData['timezone'] = $additionalInfoData['timezone'] ?? 'N/A';
+        $additionalInfoData['weather_forecast'] = $additionalInfoData['weather_forecast'] ?? 'N/A';
+        $additionalInfoData['transportation_options'] = $additionalInfoData['transportation_options'] ?? 'N/A';
+        
+        // Save visa requirements from the AI plan
+        if (isset($travelPlan['visa_requirements'])) {
+            $additionalInfoData['visa_requirements'] = $travelPlan['visa_requirements'];
+        }
+        
         $additionalInfo = AdditionalInformation::create($additionalInfoData);
         if (!$additionalInfo) {
             throw new Exception('Failed to create AdditionalInformation');
         }
     }
+
 
     private function createFlightRecommendations($locationOverview, $travelPlan)
     {
@@ -750,19 +764,36 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
         return redirect()->route('trips.show', $tripDetails->location_overview_id);
     }
 
-    /**
-     * Display all trips for the authenticated user.
-     *
-     * @return \Illuminate\View\View
-     */
     public function myTrips()
     {
-        $trips = TripDetail::where('user_id', Auth::id())
+        $userId = Auth::id();
+        
+        $trips = TripDetail::where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $upcomingTrip = TripDetail::where('user_id', $userId)
+            ->where('checkInDate', '>=', now()->format('Y-m-d'))
+            ->orderBy('checkInDate', 'asc')
+            ->first();
+
+        $totalTrips = $trips->count();
+        $totalDays = $trips->sum(function($trip) {
+            return (int) $trip->duration;
+        });
+        $uniqueDestinations = $trips->pluck('location')->unique()->count();
+
+        $favorites = Auth::user()->favorites()
             ->orderBy('created_at', 'desc')
             ->get();
 
         return view('pages.myTrips', [
             'trips' => $trips,
+            'upcomingTrip' => $upcomingTrip,
+            'totalTrips' => $totalTrips,
+            'totalDays' => $totalDays,
+            'uniqueDestinations' => $uniqueDestinations,
+            'favorites' => $favorites,
         ]);
     }
 
@@ -973,7 +1004,7 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
         ]);
 
         $updateData = [
-            'name' => $request->input('name'),
+            'name' => $request->input('name'), 
             'image_url' => null, // Reset image to trigger new fetch
         ];
 
@@ -1274,6 +1305,16 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
             ];
         }
 
+        // Extract visa requirements from the raw plan
+        $visaRequirements = null;
+        if (isset($tempPlan['plan']['visa_requirements'])) {
+            $visaRequirements = (object) $tempPlan['plan']['visa_requirements'];
+            // Ensure documents_required is an array
+            if (isset($visaRequirements->documents_required) && !is_array($visaRequirements->documents_required)) {
+                $visaRequirements->documents_required = (array) $visaRequirements->documents_required;
+            }
+        }
+
         return view('pages.tempTravelResult', compact(
             'tripDetails',
             'locationOverview',
@@ -1282,7 +1323,8 @@ private function callAiService($location, $totalDays, $traveler, $budget, $activ
             'hotels',
             'itineraries',
             'flightRecommendation',
-            'cityId'
+            'cityId',
+            'visaRequirements'
         ));
     }
 

@@ -12,6 +12,12 @@ class AdditionalInformation extends Model
         'timezone',
         'weather_forecast',
         'transportation_options',
-        'location_overview_id'
+        'location_overview_id',
+        'visa_requirements',
+    ];
+
+    protected $casts = [
+        'visa_requirements' => 'array',
     ];
 }
+

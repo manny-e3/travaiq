@@ -11,6 +11,8 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\GoogleOneTapController;
 use App\Http\Controllers\PublicTripController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\FavoriteController;
 
 Route::get('/clear-cache', function () {
     Artisan::call('config:clear');
@@ -49,10 +51,39 @@ Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth');
 Route::get('/login-register', [AuthController::class, 'showLoginRegisterForm'])->name('loginRegister');
 Route::post('/register-post', [AuthController::class, 'registerPost'])->name('registerPost');
 
+// Email Verification Routes
+Route::get('/email/verify', function () {
+    return view('auth.verify-email');
+})->middleware('auth')->name('verification.notice');
+
+Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Foundation\Auth\EmailVerificationRequest $request) {
+    $request->fulfill();
+    return redirect()->route('my.trips')->with('success', 'Email verified successfully!');
+})->middleware(['auth', 'signed'])->name('verification.verify');
+
+Route::post('/email/verification-notification', function (Illuminate\Http\Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+    return back()->with('success', 'Verification link sent!');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+// Profile Routes
+Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+// Notifications Routes
+Route::post('/notifications/mark-all-read', function () {
+    Auth::user()->unreadNotifications->markAsRead();
+    return back()->with('success', 'All notifications marked as read.');
+})->middleware('auth')->name('notifications.markAllRead');
+
+// Favorite & Visibility Routes
+Route::post('/trips/{tripId}/favorite', [FavoriteController::class, 'toggleFavorite'])->name('trips.favorite');
+Route::post('/trips/{tripId}/toggle-visibility', [FavoriteController::class, 'toggleVisibility'])->name('trips.toggle-visibility');
+
 // Travel Routes
 Route::get('/travel/form', [TravelController::class, 'showForm'])->name('travel.form');
 Route::post('/travel/generate', [TravelController::class, 'generateTravelPlan'])->name('travel.generate');
-Route::get('/my-trips', [TravelController::class, 'myTrips'])->name('my.trips')->middleware('auth');
+Route::get('/my-trips', [TravelController::class, 'myTrips'])->name('my.trips')->middleware(['auth', 'verified']);
 Route::get('/download-itinerary/{tripId}', [TravelController::class, 'downloadTrip'])->name('download.itinerary');
 
 // Specific routes first
@@ -84,7 +115,6 @@ Route::post('/contact', [ContactController::class, 'store'])->name('contact.stor
 Route::get('/test/hotels', [TravelController::class, 'testHotelIntegration'])->name('test.hotels');
 
 // LOGIN REQUIRED ROUTES
-Route::get('/my-trips', [TravelController::class, 'myTrips'])->name('my.trips')->middleware('auth');
 
 
 // Add this route for testing hotel integration

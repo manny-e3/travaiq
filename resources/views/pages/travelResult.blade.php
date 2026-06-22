@@ -91,6 +91,59 @@
                             <span class="text-xs font-semibold px-3 text-gray-500">Edit</span>
                         </div>
 
+                        <!-- Favorite & Visibility Toggles (only if owner) -->
+                        @if(Auth::check() && Auth::id() === $tripDetails->user_id)
+                            <!-- Favorite Button -->
+                            <button id="favorite-btn" onclick="toggleFavoriteTrip({{ $tripDetails->id }})" class="px-4 py-2 border border-gray-200 bg-white hover:bg-red-50 text-gray-700 hover:text-red-500 rounded-xl transition-colors flex items-center gap-1.5 text-sm font-semibold shadow-sm focus:outline-none">
+                                <svg id="favorite-icon" class="w-4 h-4 {{ $tripDetails->isFavoritedBy(Auth::user()) ? 'text-red-500 fill-current' : 'text-gray-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                                <span>Favorite</span>
+                            </button>
+
+                            <!-- Visibility Toggle -->
+                            <button id="visibility-btn" onclick="toggleTripVisibility({{ $tripDetails->id }})" class="px-4 py-2 border transition-colors rounded-xl flex items-center gap-1.5 text-sm font-semibold shadow-sm focus:outline-none {{ $tripDetails->is_public ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100/60' : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100/60' }}">
+                                <span id="visibility-dot" class="w-1.5 h-1.5 rounded-full {{ $tripDetails->is_public ? 'bg-green-500' : 'bg-gray-400' }}"></span>
+                                <span id="visibility-text">{{ $tripDetails->is_public ? 'Public' : 'Private' }}</span>
+                            </button>
+                        @endif
+
+                        <!-- Share Button with Popover -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="px-4 py-2 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-xl transition-colors shadow-sm focus:outline-none flex items-center gap-1.5 text-sm font-semibold">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 10.742l4.684-2.342m0 0l4.684 2.342m-4.684-2.342L12 3m0 0L7.316 5.342M12 3v18" /></svg>
+                                <span>Share</span>
+                            </button>
+
+                            <!-- Share Popover -->
+                            <div x-show="open" @click.away="open = false" 
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-48 rounded-xl shadow-xl bg-white border border-gray-100 py-1.5 z-40" 
+                                 style="display: none;">
+                                <button onclick="copyItineraryLink()" class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors text-left">
+                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                                    Copy Link
+                                </button>
+                                <a href="https://twitter.com/intent/tweet?url={{ urlencode(route('public.trip.show', ['reference' => $tripDetails->reference_code, 'location' => Str::slug($tripDetails->location)])) }}&text={{ urlencode('Check out my custom AI-generated travel itinerary to ' . $tripDetails->location . ' on TravaiQ!') }}" 
+                                   target="_blank" 
+                                   class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">
+                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                                    Share on Twitter
+                                </a>
+                                <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(route('public.trip.show', ['reference' => $tripDetails->reference_code, 'location' => Str::slug($tripDetails->location)])) }}" 
+                                   target="_blank" 
+                                   class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors">
+                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z"/></svg>
+                                    Share on Facebook
+                                </a>
+                            </div>
+                        </div>
+
                          <a target="_blank" href="{{ route('download.itinerary', ['tripId' => $tripId]) }}" 
                                class="hidden md:flex px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors items-center gap-2 text-sm font-bold shadow-md">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -493,6 +546,87 @@
                         </a>
                     </div>
                 </div>
+
+                <!-- Visa Requirements Widget -->
+                @if(isset($additionalInfo) && !empty($additionalInfo->visa_requirements))
+                @php
+                    $visaReq = $additionalInfo->visa_requirements;
+                    $visaRequired = data_get($visaReq, 'required');
+                    $visaType = data_get($visaReq, 'visa_type');
+                    $visaValidity = data_get($visaReq, 'validity');
+                    $visaCost = data_get($visaReq, 'cost');
+                    $visaProcessing = data_get($visaReq, 'processing_time');
+                    $visaWhere = data_get($visaReq, 'where_to_apply');
+                    $visaDocs = data_get($visaReq, 'documents_required', []);
+                    $visaNotes = data_get($visaReq, 'important_notes');
+                @endphp
+                <div class="bg-blue-50/50 rounded-2xl p-6 border border-blue-100">
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <h3 class="font-bold text-blue-800">Visa Information</h3>
+                    </div>
+                    
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between items-center py-1.5 border-b border-blue-100/50">
+                            <span class="text-blue-900/60 font-medium">Visa Required</span>
+                            <span class="px-2 py-0.5 rounded-full text-xs font-bold {{ $visaRequired ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
+                                {{ $visaRequired ? 'Yes' : 'No' }}
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5 border-b border-blue-100/50">
+                            <span class="text-blue-900/60 font-medium">Visa Type</span>
+                            <span class="font-semibold text-blue-900">{{ $visaType ?? 'N/A' }}</span>
+                        </div>
+                        @if($visaRequired)
+                            @if($visaValidity && $visaValidity !== 'N/A')
+                            <div class="flex justify-between items-center py-1.5 border-b border-blue-100/50">
+                                <span class="text-blue-900/60 font-medium">Validity</span>
+                                <span class="font-semibold text-blue-900">{{ $visaValidity }}</span>
+                            </div>
+                            @endif
+                            @if($visaCost && $visaCost !== 'N/A')
+                            <div class="flex justify-between items-center py-1.5 border-b border-blue-100/50">
+                                <span class="text-blue-900/60 font-medium">Cost</span>
+                                <span class="font-semibold text-blue-900">{{ $visaCost }}</span>
+                            </div>
+                            @endif
+                            @if($visaProcessing && $visaProcessing !== 'N/A')
+                            <div class="flex justify-between items-center py-1.5 border-b border-blue-100/50">
+                                <span class="text-blue-900/60 font-medium">Processing Time</span>
+                                <span class="font-semibold text-blue-900">{{ $visaProcessing }}</span>
+                            </div>
+                            @endif
+                            @if($visaWhere && $visaWhere !== 'N/A')
+                            <div class="py-1.5 border-b border-blue-100/50">
+                                <span class="text-blue-900/60 font-medium block mb-1">Where to Apply</span>
+                                <span class="text-xs text-blue-900 block font-semibold leading-relaxed">{{ $visaWhere }}</span>
+                            </div>
+                            @endif
+                        @endif
+
+                        @if(!empty($visaDocs) && is_array($visaDocs) && count($visaDocs) > 0)
+                        <div class="py-1.5">
+                            <span class="text-blue-900/60 font-medium block mb-1">Required Documents</span>
+                            <ul class="list-disc list-inside text-xs text-blue-900/80 space-y-1">
+                                @foreach($visaDocs as $doc)
+                                    <li>{{ $doc }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        @endif
+
+                        @if($visaNotes && $visaNotes !== 'N/A')
+                        <div class="mt-3 pt-3 border-t border-blue-100 text-xs text-blue-900 bg-blue-100/30 p-3 rounded-xl">
+                            <p class="font-semibold text-blue-950 mb-1 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Important Notes
+                            </p>
+                            <p class="leading-relaxed">{{ $visaNotes }}</p>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
 
 
                 <!-- Safety Widget -->
@@ -1204,6 +1338,131 @@
             const bounds = L.latLngBounds(latLngs);
             map.fitBounds(bounds, { padding: [50, 50] });
         }
+    }
+
+    function showPageToast(message, type = 'success') {
+        let container = document.getElementById('page-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'page-toast-container';
+            container.className = 'fixed bottom-5 right-5 z-[999] flex flex-col gap-2 pointer-events-none';
+            document.body.appendChild(container);
+        }
+        
+        let toast = document.createElement('div');
+        toast.className = `px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 pointer-events-auto border min-w-[300px] transition-all duration-300 transform translate-y-2 opacity-0 bg-white/90 backdrop-blur-xl`;
+        if (type === 'success') {
+            toast.className += ' border-green-100 text-green-800 bg-green-50/90';
+            toast.innerHTML = `<svg class="w-5 h-5 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+        } else {
+            toast.className += ' border-red-100 text-red-800 bg-red-50/90';
+            toast.innerHTML = `<svg class="w-5 h-5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+        }
+        
+        let text = document.createElement('span');
+        text.className = 'text-sm font-semibold';
+        text.innerText = message;
+        toast.appendChild(text);
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.remove('translate-y-2', 'opacity-0');
+        }, 10);
+        
+        setTimeout(() => {
+            toast.classList.add('translate-y-2', 'opacity-0');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3500);
+    }
+
+    async function toggleFavoriteTrip(tripId) {
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '{{ csrf_token() }}';
+        try {
+            let res = await fetch(`/trips/${tripId}/favorite`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                }
+            });
+
+            // Handle non-JSON / error responses
+            if (!res.ok) {
+                if (res.status === 401 || res.status === 403) {
+                    showPageToast('Please log in to save favorites.', 'error');
+                } else {
+                    let errMsg = 'Failed to toggle favorite.';
+                    try {
+                        let errData = await res.json();
+                        if (errData.message) errMsg = errData.message;
+                    } catch (_) {}
+                    showPageToast(errMsg, 'error');
+                }
+                return;
+            }
+
+            let data = await res.json();
+            if (data.success) {
+                let icon = document.getElementById('favorite-icon');
+                if (data.favorited) {
+                    icon.classList.add('text-red-500', 'fill-current');
+                    icon.classList.remove('text-gray-400');
+                } else {
+                    icon.classList.remove('text-red-500', 'fill-current');
+                    icon.classList.add('text-gray-400');
+                }
+                showPageToast(data.message, 'success');
+            } else {
+                showPageToast(data.message || 'Failed to toggle favorite.', 'error');
+            }
+        } catch(e) {
+            console.error('toggleFavoriteTrip error:', e);
+            showPageToast('Failed to toggle favorite. Please try again.', 'error');
+        }
+    }
+
+    async function toggleTripVisibility(tripId) {
+        try {
+            let res = await fetch(`/trips/${tripId}/toggle-visibility`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            });
+            let data = await res.json();
+            if (data.success) {
+                let btn = document.getElementById('visibility-btn');
+                let dot = document.getElementById('visibility-dot');
+                let text = document.getElementById('visibility-text');
+                
+                text.innerText = data.is_public ? 'Public' : 'Private';
+                
+                if (data.is_public) {
+                    btn.className = 'px-4 py-2 border transition-colors rounded-xl flex items-center gap-1.5 text-sm font-semibold shadow-sm focus:outline-none bg-green-50 border-green-200 text-green-700 hover:bg-green-100/60';
+                    dot.className = 'w-1.5 h-1.5 rounded-full bg-green-500';
+                } else {
+                    btn.className = 'px-4 py-2 border transition-colors rounded-xl flex items-center gap-1.5 text-sm font-semibold shadow-sm focus:outline-none bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100/60';
+                    dot.className = 'w-1.5 h-1.5 rounded-full bg-gray-400';
+                }
+                showPageToast(data.message, 'success');
+            }
+        } catch(e) {
+            showPageToast('Failed to toggle visibility.', 'error');
+        }
+    }
+
+    function copyItineraryLink() {
+        const link = '{{ route('public.trip.show', ['reference' => $tripDetails->reference_code, 'location' => Str::slug($tripDetails->location)]) }}';
+        navigator.clipboard.writeText(link).then(() => {
+            showPageToast('Link copied to clipboard!', 'success');
+        }).catch(() => {
+            showPageToast('Failed to copy link.', 'error');
+        });
     }
 </script>
 

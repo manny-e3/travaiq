@@ -64,6 +64,8 @@ class GoogleController extends Controller
                 'budget' => $tempPlan['budget'],
                 'activities' => $tempPlan['activities'],
                 'user_id' => $user->id,
+                'checkInDate' => $tempPlan['check_in_date'] ?? null,
+                'checkOutDate' => $tempPlan['check_out_date'] ?? null,
             ]);
 
             Log::info('Created trip detail', ['trip_detail_id' => $tripDetail->id]);
@@ -206,6 +208,7 @@ class GoogleController extends Controller
                 'weather_forecast' => data_get($tempPlan, 'plan.additional_information.weather_forecast', 'N/A'),
                 'transportation_options' => data_get($tempPlan, 'plan.additional_information.transportation_options', 'N/A'),
                 'exchange_rate' => data_get($tempPlan, 'plan.additional_information.exchange_rate', 1.0), // Default to 1.0 if not specified
+                'visa_requirements' => data_get($tempPlan, 'plan.visa_requirements'),
             ]);
 
             Log::info('Created additional information', ['additional_info_id' => $additionalInfo->id]);

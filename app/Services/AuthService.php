@@ -51,6 +51,9 @@ class AuthService
         // Log in the user automatically after registration
         Auth::login($user);
 
+        // Fire Registered event to trigger Laravel's email verification notification
+        event(new \Illuminate\Auth\Events\Registered($user));
+
         // Save temporary travel plan if it exists
         $tripDetail = $this->saveTempTravelPlan($user);
 
@@ -237,6 +240,8 @@ class AuthService
                 'budget' => $tempPlan['budget'],
                 'activities' => $tempPlan['activities'],
                 'user_id' => $user->id,
+                'checkInDate' => $tempPlan['check_in_date'] ?? null,
+                'checkOutDate' => $tempPlan['check_out_date'] ?? null,
             ]);
 
             Log::info('Created trip detail', ['trip_detail_id' => $tripDetail->id]);

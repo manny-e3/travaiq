@@ -13,6 +13,13 @@ class PublicTripController extends Controller
             ->where('reference_code', $reference)
             ->firstOrFail();
 
+        // Privacy check
+        if (!$trip->is_public) {
+            if (!auth()->check() || auth()->id() !== $trip->user_id) {
+                abort(403, 'This travel itinerary is private.');
+            }
+        }
+
         // SEO Canonicalization: Check if URL location slug matches trip location
         $expectedSlug = \Illuminate\Support\Str::slug($trip->location);
         if ($location !== $expectedSlug) {
