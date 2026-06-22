@@ -91,20 +91,19 @@
         <!-- Bottom Bar -->
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
             <p class="text-gray-500 text-sm text-center md:text-left">
-                &copy; @php echo date('Y'); @endphp TravaiQ. All rights reserved. Made with 
-                <span class="text-red-400">♥</span> and AI.
+                &copy; @php echo date('Y'); @endphp TravaiQ. All rights reserved
             </p>
             
             <div class="flex items-center gap-6">
                 <a href="{{ route('sitemap') }}" class="text-gray-500 hover:text-white transition-colors duration-200 text-sm">Sitemap</a>
                 <span class="text-gray-700">·</span>
-                <span class="text-gray-500 text-sm flex items-center gap-1.5">
+                <!-- <span class="text-gray-500 text-sm flex items-center gap-1.5">
                     <span class="flex h-2 w-2 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
                     All systems operational
-                </span>
+                </span> -->
             </div>
         </div>
     </div>
